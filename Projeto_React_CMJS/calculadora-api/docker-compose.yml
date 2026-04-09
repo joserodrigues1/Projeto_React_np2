@@ -1,0 +1,17 @@
+services:
+  calculadora-db:
+    image: postgres:18-alpine
+    container_name: calculadora-db
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: calculadora
+      POSTGRES_USER: calculadora_api
+      POSTGRES_PASSWORD: "123"
+    restart: unless-stopped
+    volumes:
+      - calculadora-db-data:/var/lib/postgresql/data
+
+volumes:
+  calculadora-db-data:
+    driver: local
