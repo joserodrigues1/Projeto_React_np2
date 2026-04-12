@@ -144,7 +144,7 @@ const ChatbotUI = ({ onClose }) => {
     const handleClearChat = () => {
         setMessages([]);
         setSessionId(generateSessionId());
-        console.log('Conversa limpa com novo ID gerado! Olá, eu sou Continha :)'); 
+        console.log('Conversa limpa com novo ID gerado! Olá, eu sou Christina :)'); 
     };
 
     const panelStyle = {
@@ -247,8 +247,8 @@ const ChatbotUI = ({ onClose }) => {
                         </p>
                         
                         <ChatOptionButton 
-                            text="Como posso verificar a Renda Mensal?" 
-                            onClick={() => handleSendMessage("Como posso verificar a Renda Mensal?")} 
+                            text="Como posso verificar meu imposto de renda?" 
+                            onClick={() => handleSendMessage("Como posso verificar meu imposto de renda?")} 
                         />
                         <ChatOptionButton 
                             text="Qual a diferença entre PF e PJ?" 
@@ -263,7 +263,7 @@ const ChatbotUI = ({ onClose }) => {
                 
                 {isLoading && (
                     <div style={loadingStyle}>
-                        Continha está digitando...
+                        Christina está digitando...
                     </div>
                 )}
                 
