@@ -1,16 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import IconeContinha from '../../assets/iconChatbotR.png';
+import IconeContinha from '../../assets/IconChatbootIA.png';
 
 const FALLBACK_ICON = 'https://placehold.co/24x24/00ccff/ffffff?text=AI';
 const ICON_SRC = IconeContinha;
 // URL do Webhook do n8n
-const API_URL = import.meta.env.VITE_N8N_WEBHOOK_URL || "http://localhost:5678/webhook/chatbot-continha";
-// Um identificador de sessão único por aba para o n8n saber quem é quem no histórico (mantém contexto no workflow de IA)
-const SESSION_ID = "session-" + Math.random().toString(36).substring(2, 9);
+const API_URL = import.meta.env.VITE_N8N_WEBHOOK_URL || "http://localhost:5678/webhook/chatbot-unichristus";
+const generateSessionId = () => "session-" + Math.random().toString(36).substring(2, 9);
 
-// Componente para exibir o ícone do chatbot como fallback, ou seja como uma alternativa caso a imagem principal não carregue
+// Componente para exibir o ícone do chatbot como fallback
 const IconContinha = ({ src, alt, size, isRounded, style }) => (
     <img 
         src={src || FALLBACK_ICON} 
@@ -88,6 +87,10 @@ const ChatbotUI = ({ onClose }) => {
     const [messages, setMessages] = useState([]);
     // Indica que o chatbot está respondendo à mensagem do usuário
     const [isLoading, setIsLoading] = useState(false);
+    // Identificador único da sessão para n8n com gerador
+    const [sessionId, setSessionId] = useState(generateSessionId());
+    // Controlar tamanho expandido/reduzido
+    const [isExpanded, setIsExpanded] = useState(false);
     // Rola a conversa para a última mensagem automaticamente
     const messagesEndRef = useRef(null);
     
@@ -107,7 +110,7 @@ const ChatbotUI = ({ onClose }) => {
         // Dispara para o Webhook do N8N com formato customizado simplificado
         const payload = {
             mensagem: text,
-            sessionId: SESSION_ID
+            sessionId: sessionId
         };
 
         const response = await fetch(API_URL, {
@@ -140,15 +143,19 @@ const ChatbotUI = ({ onClose }) => {
     // Limpa o histórico de mensagens do chatbot
     const handleClearChat = () => {
         setMessages([]);
-        console.log('Conversa limpa! Olá, eu sou Continha :)'); 
+        setSessionId(generateSessionId());
+        console.log('Conversa limpa com novo ID gerado! Olá, eu sou Continha :)'); 
     };
 
     const panelStyle = {
         position: 'fixed',
         bottom: '90px',
         right: '20px',
-        width: '350px',
-        height: '500px',
+        width: isExpanded ? '450px' : '350px',
+        height: isExpanded ? '650px' : '500px',
+        maxWidth: '90vw',
+        maxHeight: '80vh',
+        transition: 'width 0.3s ease, height 0.3s ease',
         backgroundColor: '#05142eff',
         color: 'white',
         borderRadius: '10px',
@@ -204,9 +211,23 @@ const ChatbotUI = ({ onClose }) => {
                         isRounded={true} 
                         style={{ marginRight: '8px' }}
                     />
-                    <span style={{ fontWeight: 'bold' }}>Continha</span>
+                    <span style={{ fontWeight: 'bold' }}>Christina</span>
                 </div>
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button onClick={handleClearChat} title="Nova Conversa" style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        color: '#00ccff', 
+                        fontSize: '1.1em', 
+                        cursor: 'pointer' 
+                    }}>🔄</button>
+                    <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? "Reduzir" : "Expandir"} style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        color: '#00ccff', 
+                        fontSize: '1.1em', 
+                        cursor: 'pointer' 
+                    }}>{isExpanded ? '🗗' : '🗖'}</button>
                     <button onClick={onClose} style={{ 
                         background: 'none', 
                         border: 'none', 
@@ -222,7 +243,7 @@ const ChatbotUI = ({ onClose }) => {
                 {messages.length === 0 && (
                     <>
                         <p style={{ margin: '0 0 15px 0', color: '#ccc', fontSize: '0.9em' }}>
-                            Oi, eu sou Continha :) Estou aqui para te ajudar caso tenha alguma dúvida sobre Tributação, Cálculos PF/PJ e Finanças.
+                            Oi, eu sou Christina :) Estou aqui para te ajudar caso tenha alguma dúvida sobre Tributação, Cálculos PF/PJ e Finanças.
                         </p>
                         
                         <ChatOptionButton 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import IconChatbot from './IconChatbot'; 
-import chatIcon from '../../assets/iconChatbotR.png'; 
+import chatIcon from '../../assets/IconChatbootIA.png'; 
 
 const ChatbotToggle = ({ isOpen, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -20,7 +20,7 @@ const ChatbotToggle = ({ isOpen, onClick }) => {
           fontSize: '14px',
           zIndex: 1000
         }}>
-          Continha está pronta para te ajudar 💡
+          Chris está pronta para te ajudar 💡
         </div>
       )}
 
