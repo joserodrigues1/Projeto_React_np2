@@ -237,7 +237,7 @@ body {
     line-height: 1.6;
 }
 
-/* Animações e Estilos Senior CSS */
+/* Animações e de transição e feedback da interface */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -297,7 +297,7 @@ body {
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
 }
 
-/* Custom Toggle Switch for Email Checkbox */
+/* Estilização customizada para a chave "toggle" da opção de e-mail */
 .toggle-switch {
     position: relative;
     display: inline-block;

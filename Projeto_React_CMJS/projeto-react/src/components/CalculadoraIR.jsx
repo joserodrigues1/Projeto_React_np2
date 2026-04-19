@@ -1,14 +1,20 @@
+/**
+ * Lógicas de Cálculos Tributários (PF e PJ)
+ * ---------------------------------------------------------
+ * Algoritmos extraídos e encapsulados para viabilizar simulações
+ * do IRPF (Tabela Progressiva) e Simples Nacional (Anexos III e IV).
+ */
 export function calculadoraIRPF(rendaMensal, custosMensais) {
-    // Garante que os valores venham como número pra evitar bugs de string nas contas
+    // Sanitização e conversão de tipos de entrada para cálculo matemático
     const renda = Number(rendaMensal);
     const custos = Number(custosMensais);
     
-    // Base de cálculo é o que sobrou da renda abatendo os custos da profissão
+    // Definição da base de cálculo descontando custos operacionais/deduções
     const basePF = renda - custos;
     let imposto = 0;
     let deducao = 0;
 
-    // Lógica da tabela progressiva de IRPF (faixas e parcelas a deduzir padrão)
+    // Aplicação das faixas baseadas na Tabela Progressiva Anual (Mensalizada) do IRPF
     if (basePF <= 2428.8) {
         imposto = 0;
         deducao = 0; // Faixa de isenção
@@ -22,26 +28,26 @@ export function calculadoraIRPF(rendaMensal, custosMensais) {
         deducao = 675.49;
         imposto = (basePF * 0.225) - deducao;
     } else {
-        // Teto do imposto de renda (27,5% em cima de tudo)
+        // Teto limite: Alíquota máxima fixada em 27,5%
         deducao = 908.73;
         imposto = (basePF * 0.275) - deducao;
     }
 
-    // Regra da Tabela 2: desconto progressivo que beneficia as faixas menores
+    // Tabela 2: Fator de amortização progressiva beneficiando as faixas primárias
     let valorReducao = 0;
 
     if (renda <= 5000) {
-        valorReducao = 312.89; // Redução cheia pra quem ganha até 5k
+        valorReducao = 312.89; // Redução majorada para faixas inferiores à R$ 5.000
     } else if (renda <= 7350) {
-        valorReducao = 978.62 - (0.133145 * renda); // Fórmula de amortização
+        valorReducao = 978.62 - (0.133145 * renda); // Cálculo atuarial de amortização escalonada
     } else {
-        valorReducao = 0; // Ganha quem ganha muito? Chora pro Leão
+        valorReducao = 0; // Faixas superiores cessam benefício de redução
     }
 
-    // Aplica a redução garantindo que o imposto não fique negativo usando o Math.max
+    // Cálculo do tributo abatendo a redução e impedindo valores nominais negativos
     imposto = Math.max(0, imposto - Math.max(0, valorReducao));
 
-    // Valor líquido final pro bolso
+    // Definição do Rendimento Líquido final pós-tributos
     const rendaLiquida = renda - imposto;
 
     return {
@@ -55,20 +61,23 @@ export function calculadoraIRPF(rendaMensal, custosMensais) {
 }
 
 
-// Mesma pegada de função, mas agora focado no cálculo como empresa
+/**
+ * Algoritmo contábil da modalidade Pessoa Jurídica (Simples Nacional)
+ * Parametrizado com base em anexos específicos da profissão.
+ */
 export function calculadoraIRPJ(rendaMensal, profissao) {
     const renda = Number(rendaMensal);
 
-    // Tratamento dividido pq advogados tem regras chatas com OAB e tabela do Simples
+    // Condicionais de Anexos Fiscais de acordo com CNAE e regimento específico da profissão
     if(profissao === "psicologo" || profissao === "arquiteto"){
         
-        // Simples Nacional Anexo III (Aprox. 6%)
+        // Simples Nacional: Alíquota referencial do Anexo III
         const simples_nac = renda * 0.06;
         
-        // Pro-labore (Fator R) exigido de 28% pra fugir de alíquotas maiores
+        // Aplicação da regra do Fator R: Pro-labore estipulado em 28% visando isenção/estabilização de alíquota
         const pro_labore = renda * 0.28;
         
-        // Contribuição do INSS sobre o Pró-labore
+        // Incidência de INSS Patronal aplicada exclusivamente sobre o Pró-labore
         const inss = pro_labore * 0.11;
         
         const imposto = simples_nac + inss;
@@ -85,14 +94,14 @@ export function calculadoraIRPJ(rendaMensal, profissao) {
     }
     else if(profissao === "advogado"){
         
-        // Simples Nacional Anexo IV focado (Advocacia entra com 4.5% limpo)
+        // Simples Nacional: Alíquota referencial do Anexo IV focado (Alíquota nominal básica: 4.5%)
         const simples_nac = renda * 0.045;
         
-        // Pro-labore fixado pra advocacia pro projeto (referência)
+        // Retirada Fixa de Pró-labore adotada internamente pelo escritório/aplicação
         const pro_labore = 1621;
         const perce28 = pro_labore;
         
-        // INSS e encargos chatos da cota patronal
+        // Rateio de Contribuição Previdenciária englobando Cota Patronal majorada
         const inss = pro_labore * 0.11;
         const inss_patronal = pro_labore * 0.20;
         

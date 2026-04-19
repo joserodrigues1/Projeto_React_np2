@@ -1,26 +1,46 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+/**
+ * CalculadoraForm
+ * ---------------------------------------------------------
+ * Componente principal de UI para entrada de dados tributários.
+ * Ele engloba campos para renda, custo, profissão e opção
+ * de envios de e-mail.
+ * 
+ * Utilizamos a blibioteca `react-hook-form` para gerir o estado 
+ * complexo (erros vitais, validação dinâmica de regex para blocos
+ * monetários, e watch de campos).
+ */
 const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
 
-    // Extraindo hooks de config do react-hook-form pra desburocratizar a gerência de forms React 
+    // Inicia os hooks do react-hook-form para checar a digitação em tempo real
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
     
-    // O Watch ta observando realtime a prop do checbox de email (mesmoq eu ele esteja desativado agora)
+    // Fica vigiando para ver se o usuário liga ou desliga o botãozinho de enviar email
     const enviarEmailCheck = watch('enviarEmail', false);
     
-    // Estado volátil só p exibir balãozinho de "Deu Certo " verde.
+    // Guarda momentaneamente a mensagem verde informando que "Deu Certo"
     const [mensagemSucesso, setMensagemSucesso] = useState(null);
     const [isCalculating, setIsCalculating] = useState(false);
 
-    // Método que interage com o hook onSubmit. Recebe "DADOS", que é o payload json higienizado.
+    /**
+     * onSubmit
+     * ---------------------------------------------------------
+     * Pipeline disparado pela UI.
+     * Ele ativa um estado de loading virtual (800ms) para UX ('isCalculating'),
+     * converte vírgulas monetárias amigáveis do pt-BR para floats aceitos pelo JS, 
+     * empacota as propriedades e aciona a callback pai `onDataSubmit` 
+     * passando o json "limpo".
+     */
     const onSubmit = (dados) => {
         setIsCalculating(true);
+        // Dá um tempinho de 800ms simulando carregamento, para o usuário ver o estado mudando da tela
         setTimeout(() => {
-        // Snippetzinho maroto pra resolver nosso problema das virgulas brasileiras zoando o Math 
+        // Função auxiliar pra converter os valores: se tiver vírgula brasileira, troca por ponto para o JavaScript conseguir somar
         const converterParaNumero = (valor) => {
             if (typeof valor === 'string') {
-                return Number(valor.replace(',', '.')); // troca , e converte bruto
+                return Number(valor.replace(',', '.')); // troca , por ponto e converte bruto
             }
             return Number(valor) || 0;
         };
@@ -28,7 +48,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         const rendaValida = converterParaNumero(dados.rendaMensal);
         const custosValidos = converterParaNumero(dados.custosMensais);
 
-        // Agrupa as props limpídas
+        // Empacota todos os formulários num formato bonitinho para enviar pra página principal
         const dadosParaProp = {
             tipoCalculo: dados.profissao === 'psicologo' ? 'PF' : 'PJ',
             renda: rendaValida,
@@ -38,17 +58,17 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
             profissao: dados.profissao,
         };
 
-        // Escoa info de volta subindo pro Pai (App.jsx)
+        // Envia as informações empacotadas lá pro componente pai (App.jsx)
         if (onDataSubmit) {
             onDataSubmit(dadosParaProp);
             setMensagemSucesso("✅ Dados enviados para cálculo e comparação.");
             setIsCalculating(false);
-            setTimeout(() => setMensagemSucesso(null), 5000); // Tira o alerta em 5 segs da tela 
+            setTimeout(() => setMensagemSucesso(null), 5000); // Apaga a mensagem verde depois de 5 segundos
         }
-        }, 800); // 800ms animation delay giving a senior processing feel
+        }, 800); // Tempo do carregamento falso para gerar melhor percepção ao calcular
     };
 
-    /** CSS inline massivo pros styles **/
+    /** Objetos de Estilização em JS (CSS-in-JS) **/
 
     const formWrapperStyle = {
         maxWidth: '600px',
@@ -79,7 +99,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
     const inputStyle = (isError) => ({
         width: '100%',
         padding: '12px',
-        border: isError ? '1px solid #E53E3E' : '1px solid #CBD5E0', // feedback borda vermelha 
+        border: isError ? '1px solid #E53E3E' : '1px solid #CBD5E0', // Pinta a borda de vermelho se alguém não preencheu certo
         borderRadius: '6px',
         fontSize: '1em',
         boxSizing: 'border-box',
@@ -102,7 +122,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         fontWeight: 'bold',
         fontSize: '1.1em',
         cursor: 'pointer',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // gradiente Unichristus
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Gradiente roxo principal do layout
         transition: 'opacity 0.3s',
     };
 
@@ -117,7 +137,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
 
     return (
         <div style={formWrapperStyle}>
-            {/* O handleSubmit envelopa nosso OnSubmit pegando do hook context as trvas de form nativo  */}
+            {/* O handleSubmit envelopa tudo, então só prossegue se as regras escritas no input baterem certinho */}
             <form onSubmit={handleSubmit(onSubmit)} className="calculadora-form">
                 <h2 style={titleStyle}>Informe os Dados</h2>
 
@@ -125,35 +145,35 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     <div style={successMessageStyle} className="animate-fade-in-scale">{mensagemSucesso}</div>
                 )}
                 
-                {/*  ------- INiCIO BLCOO RENDA  ------- */}
+                {/* --- BLOCO: RECEITA MENSAL --- */}
                 <div style={formGroupStyle}>
                     <label htmlFor="renda" style={labelStyle}>Renda Mensal (até R$ 15.000): </label>
                     <input
                         id="renda"
                         type="text"
                         style={inputStyle(errors.rendaMensal)}
-                        // Desestruturando regras de bloqueio do Form control 
+                        // Validações que travam o usuário se algo der errado
                         {...register("rendaMensal", { 
                             required: "A Renda Mensal é obrigatória.",
                             pattern: {
-                                value: /^[\d,.]+$/, // Aceita só number e vírgulas/ponto. Se tentar 'a' chora 
+                                value: /^[\d,.]+$/, // Permite estritamente os numerais do teclado e as vírgulas/pontos
                                 message: "Digite um valor válido (use vírgula ou ponto como separador decimal)."
                             },
                             validate: (value) => {
                                 const num = Number(value.replace(',', '.'));
                                 if (isNaN(num)) return "Valor inválido.";
                                 if (num <= 0) return "A renda deve ser maior que zero.";
-                                if (num > 15000) return "A renda não pode exceder R$ 15.000."; // Trava de negocio limite
+                                if (num > 15000) return "A renda não pode exceder R$ 15.000."; // Trava estipulada de renda pelo projeto
                                 return true;
                             }
                         })}
                         placeholder="Ex: 5.000 ou 5,000"
                     />
-                    {/* feedback de error renderizando aqui */}
+                    {/* Feedback vermelho de erro renderizando aqui embaixo caso a pessoa erre digitando */}
                     {errors.rendaMensal && <span style={errorMessageStyle}>{errors.rendaMensal.message}</span>}
                 </div>
 
-                {/*  ------- BLCOO CUSTOS ------- */}
+                {/* --- BLOCO: CUSTOS MENSAIS --- */}
                 <div style={formGroupStyle}>
                     <label htmlFor="custos" style={labelStyle}>Total de Custos Mensais: </label>
                     <input
@@ -178,7 +198,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     {errors.custosMensais && <span style={errorMessageStyle}>{errors.custosMensais.message}</span>}
                 </div>
 
-                {/* ------- DROPDOWN PROFISSOES ------- */}
+                {/* --- BLOCO: SELETOR DE PROFISSÃO --- */}
                 <div style={formGroupStyle}>
                     <label htmlFor="profissao" style={labelStyle}>Profissão:</label>
                     <select 
@@ -206,7 +226,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     </span>
                 </div>
                 
-                {/* Bloco Dinâmico: só renderiza emailUsuario se a checkbox Email tiver ticada  */}
+                {/* --- BLOCO CONDICIONAL: E-MAIL REQUISITADO --- */}
                 {enviarEmailCheck && (
                     <div style={formGroupStyle}>
                         <label htmlFor="emailUsuario" style={labelStyle}>Seu E-mail:</label>
@@ -217,7 +237,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                             {...register("emailUsuario", {
                                 required: "O campo de e-mail é obrigatório para o envio.",
                                 pattern: {
-                                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, // regex clássica de email
+                                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, // Máscara checando o padrão de e-mail (nome@exemplo.com)
                                     message: "E-mail inválido."
                                 }
                             })}

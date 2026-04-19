@@ -1,3 +1,10 @@
+/**
+ * Navegação / Header Principal
+ * ---------------------------------------------------------
+ * Controla os links das páginas (Cadastro, Login, Contato) 
+ * via `react-router-dom` e indica ativamente em qual aba 
+ * o usuário está no momento.
+ */
 import React from 'react';
 import Logo from './Logo.jsx';
 import {Link} from "react-router-dom";

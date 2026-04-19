@@ -2,27 +2,30 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form'; // ⬅️ IMPORTADO
+import { useForm } from 'react-hook-form';
 
-// O componente recebe onSubmitContato via props (do App.jsx)
+/**
+ * Componente do Formulário de Contato 
+ * Implementa validação reativa e gerencia status assíncronos de envios para e-mail/banco de dados via serviço externo.
+ */
 const ContatoForm = ({ onSubmitContato }) => {
     const navigate = useNavigate();
     
-    // 1. Inicializa o react-hook-form
+    // Injeção de dependência e controle nativo da view via useForm
     const { register, handleSubmit, formState: { errors } } = useForm();
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
-    const [submitError, setSubmitError] = useState(null); // Para erros gerais da API
+    const [submitError, setSubmitError] = useState(null); 
 
-    // 2. NOVA LÓGICA DE SUBMISSÃO (Chamada pelo handleSubmit do hook form)
+    // Controller Dispatcher que trata a comunicação entre a interface local e o repositório/service externo 
     const onSubmit = async (formData) => {
         setIsSubmitting(true);
         setSubmissionSuccess(false);
         setSubmitError(null); 
 
         try {
-            // Chama a função de envio centralizada no App.jsx
+            // Callback invocando camada de serviço superior
             const result = await onSubmitContato(formData); 
             
             if (result.success) {
@@ -34,13 +37,13 @@ const ContatoForm = ({ onSubmitContato }) => {
                 
                 setTimeout(() => setSubmissionSuccess(false), 5000);
             } else {
-                // Exibe o erro retornado pelo App.jsx (Backend)
+                // Instancia exceção sobre falha tratada pelo serviço 
                 throw new Error(result.error);
             }
 
         } catch (error) {
             console.error('Erro ao enviar contato:', error);
-            // Captura e exibe a mensagem de erro da API
+            // Delegação e exibição do escopo de erro emitido pelo provedor de API
             setSubmitError(error.message || 'Erro ao enviar sua mensagem. Tente novamente.');
         } finally {
             setIsSubmitting(false);
@@ -51,11 +54,7 @@ const ContatoForm = ({ onSubmitContato }) => {
         navigate('/');
     };
     
-    // =================================================================
-    // ESTILOS E JSX
-    // (Aproveitando os estilos que você enviou do CalculadoraForm)
-    // =================================================================
-
+    /* Padrões de Estilização CSS-in-JS Locais */
     const formWrapperStyle = {
         minHeight: '60vh',
         display: 'flex',
@@ -177,7 +176,7 @@ const ContatoForm = ({ onSubmitContato }) => {
                         </div>
                     )}
 
-                    {/* CAMPO NOME */}
+                    {/* Campo de Entrada: Nome */}
                     <div style={formGroupStyle}>
                         <label htmlFor="nome" style={labelStyle}>Nome Completo *</label>
                         <input
@@ -193,7 +192,7 @@ const ContatoForm = ({ onSubmitContato }) => {
                         {errors.nome && <p style={errorTextStyle}>{errors.nome.message}</p>}
                     </div>
 
-                    {/* CAMPO EMAIL */}
+                    {/* Campo de Entrada: Email */}
                     <div style={formGroupStyle}>
                         <label htmlFor="email" style={labelStyle}>Email *</label>
                         <input
@@ -212,7 +211,7 @@ const ContatoForm = ({ onSubmitContato }) => {
                         {errors.email && <p style={errorTextStyle}>{errors.email.message}</p>}
                     </div>
 
-                    {/* CAMPO DÚVIDA/MENSAGEM */}
+                    {/* Campo de Entrada: Descritivo Textarea */}
                     <div style={formGroupStyle}>
                         <label htmlFor="duvida" style={labelStyle}>Sugestões/Dúvidas *</label>
                         <textarea

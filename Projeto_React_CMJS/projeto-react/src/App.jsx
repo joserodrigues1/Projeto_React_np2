@@ -1,3 +1,11 @@
+/**
+ * Arquivo Principal da Aplicação (Entry Point)
+ * ---------------------------------------------------------
+ * Responsável por orquestrar o roteamento (React Router), 
+ * instanciar as lógicas de cálculo tributário e gerenciar 
+ * o envio assíncrono de e-mails/contato junto a uma API.
+ * Aqui também encapsulamos os componentes globais (Header, Footer, Chatbot).
+ */
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
@@ -24,8 +32,8 @@ import ContatoForm from './components/ContatoForm/ContatoForm.jsx';
 import LoginUsuario from "./components/cadastro/LoginUsuario.jsx";
 
 
-// Hack pra contornar o ambiente de desenvolvimento do Codespaces
-// O github usa portas dinâmicas, essa fução força a rotaetar pro 3000 independente de onde tá rodando 
+// Resolução dinâmica de URLs para o ambiente de desenvolvimento (GitHub Codespaces)
+// Garante que as requisições API apontem para a porta :3000 do gateway local
 const getBackendBaseUrl = () => {
     if (typeof window === 'undefined' || !window.location.href) {
         return 'http://localhost:3000';
@@ -43,7 +51,7 @@ const getBackendBaseUrl = () => {
     return 'http://localhost:3000';
 };
 
-// Endpoints usados pelo axios 
+// Links das rotas da nossa API principal
 const API_BASE_URL = getBackendBaseUrl();
 const API_EMAIL_ENDPOINT = `${API_BASE_URL}/email/resultado`;
 const API_CONTATO_ENDPOINT = `${API_BASE_URL}/email/contato`;
@@ -51,20 +59,36 @@ const API_CONTATO_ENDPOINT = `${API_BASE_URL}/email/contato`;
 
 function App() {
     
-    // States pro armazenamento dos dados após submissão dos cálculos
+    /** 
+     * ==========================================
+     *  STATE MANAGEMENT
+     * ==========================================
+     */
+    // Estados que guardam as respostas do formulário e o resultado das contas
     const [dadosFormulario, setDadosFormulario] = useState(null);
     const [resultadoPF, setResultadoPF] = useState(null);
     const [resultadoPJ, setResultadoPJ] = useState(null);
     
-    // Controlar toggle do componente ChatBot (IA Módulo)
+    // Controla se a janelinha do chatbot está aberta ou fechada
     const [isChatOpen, setIsChatOpen] = useState(false);
 
-    // O controller master: engatilha tudo do cálculo após o 'submit' lá do componente child CalculadoraForm 
+    /**
+     * handleCalculo
+     * ---------------------------------------------------------
+     * O controller principal do sistema. É engatilhado quando 
+     * o usuário dá 'submit' dentro do <CalculadoraForm/>.
+     * Fluxo:
+     * 1. Puxa os dados capturados e higienizados.
+     * 2. Evoca os algoritmos locais de cálculo (calculadoraIRPF e calculadoraIRPJ).
+     * 3. Atualiza os estados globais para forçar o re-render 
+     *    da tela de resultados (<ResultadoComparacao />).
+     * 4. Lida opcionalmente com o disparo da API de E-mail via Axios.
+     */
     const handleCalculo = async (dadosParaCalculo) => {
         console.log("Iniciando bateria de cálculo PJePF.");
 
         try {
-            // Unificando a sujeira vinda do form em um state objeto só.
+            // Pega os dados bagunçados do formulário e junta tudo num pacotinho organizado
             const dadosEntrada = {
                 rendaMensal: dadosParaCalculo.renda,
                 custosMensais: dadosParaCalculo.custos,
@@ -72,24 +96,24 @@ function App() {
                 profissao: dadosParaCalculo.profissao
             };
 
-            // Roda a lógica nativa em JS pra gerar o preview real time 
+            // Roda a matemática pra ver o imposto da pessoa física e jurídica
             const resultadoPFLocal = calculadoraIRPF(dadosEntrada.rendaMensal, dadosEntrada.custosMensais);
             const resultadoPJLocal = calculadoraIRPJ(dadosEntrada.rendaMensal, dadosEntrada.profissao);
 
-            // Popula os states engatilhando o re-render pros blocos em tela 
+            // Salva o resultado no estado local pro React atualizar a tela com os cards
             setDadosFormulario(dadosEntrada);
             setResultadoPF(resultadoPFLocal);
             setResultadoPJ(resultadoPJLocal);
 
-            // Animação UX: O usuário clica, e logo que calcular rola a tela maciamente ate a caixa de resultado
+            // Faz a tela deslizar para baixo maciamente para exibir o resultado
             setTimeout(() => {
                 const el = document.getElementById('resultado-comparacao');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 150);
 
-            // Rotina secundária condicional se pediu relatorio de email...
+            // Se a pessoa marcou o checkbox de email, a gente dispara a requisição por baixo dos panos
             if (dadosParaCalculo.enviarEmail && dadosParaCalculo.emailUsuario) {
-                console.log("Disparando req de email -> ", dadosParaCalculo.emailUsuario);
+                console.log("Enviando requisição de email pra caixa de: ", dadosParaCalculo.emailUsuario);
 
                 const dadosParaEmail = {
                     destinatario: dadosParaCalculo.emailUsuario,
@@ -102,15 +126,15 @@ function App() {
             }
 
         } catch (error) {
-            console.error("Crashou no handleCalculo:", error);
+            console.error("Erro feio ao tentar calcular a rotina principal:", error);
 
             let errorMessage = "Erro ao calcular localmente.";
             
-            // Lidando graciosamente caso a conta deu certo mas só o email pipocou.
+            // Tratando o caso super específico onde o calculo na tela foi um sucesso, mas a API de email caiu
             if (error.config && error.config.url === API_EMAIL_ENDPOINT) {
                 errorMessage = "Calculou certinho, mas o servidor de e-mail falhou em enviar o preview.";
             } else {
-                // Zerando o cache de states pra matar cards lixados q ficaram em tela
+                // Limpa os estados pra remover possíveis componentes sujos/quebrados presos na tela
                 setDadosFormulario(null);
                 setResultadoPF(null);
                 setResultadoPJ(null);
@@ -120,14 +144,14 @@ function App() {
         }
     };
     
-    // Função Wrapper separada do form de Contato pra gente centralizar tratamento HTTP error log.
+    // Função separada pra lidar só com o envio da aba de contato e logar possíveis falhas de conexão
     const handleSendContato = async (formData) => {
         try {
             const response = await axios.post(API_CONTATO_ENDPOINT, formData);
             return { success: true }; 
         } catch (error) {
             console.error('Contato catch error:', error);
-            let errorMessage = 'Não rolou conectar na API.';
+            let errorMessage = 'A API parece que caiu ou a URL está errada.';
             
             if (error.code === 'ERR_NETWORK') {
                 errorMessage = `Xii, API Backend provavel offline: ${API_BASE_URL}`;
@@ -138,7 +162,7 @@ function App() {
                     ? error.response.data.message.join(', ')
                     : error.response.data.message;
             }
-            // Devolve e terceiriza pro ReactForm pintar em border-red.
+            // Devolve o erro textualmente pro formulário laurear a caixa problemática de vermelho
             return { success: false, error: errorMessage }; 
         }
     };
@@ -147,8 +171,10 @@ function App() {
 
     return (
         <div className='App' style={{ padding: '0', width: '100%', margin: '0' }}>
+            {/* Cabeçalho fixo da aplicação */}
             <Header />
 
+            {/* Main Wrapper com o Roteador das Páginas */}
             <main>
                 <Routes>
                     <Route
@@ -160,7 +186,7 @@ function App() {
                                     onOpenChat={toggleChat}
                                 />
 
-                                {/* Lógica Curta Circuito: Só exibe componente Resultado se os 3 requisitos state passarem Null-check */}
+                                {/* Prevenção: Só vai renderizar o bloco de resultados na tela se a gente tiver os valores do form carregados */}
                                 {dadosFormulario && resultadoPF && resultadoPJ && (
                                     <ResultadoComparacao
                                         dadosEntrada={dadosFormulario}
@@ -185,7 +211,7 @@ function App() {
                     />
                 </Routes>
 
-                {/* Render Condicional do Modal UI de Chatbot da Christina ou só da Bolinha dele */}
+                {/* Troca entre renderizar o botão bolinha de ajuda ou renderizar o chat completão */}
                 {isChatOpen && <ChatbotUI onClose={toggleChat} />}
                 {!isChatOpen && <ChatbotToggle isOpen={isChatOpen} onClick={toggleChat} />}
             </main>

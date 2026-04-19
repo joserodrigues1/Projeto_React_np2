@@ -6,14 +6,14 @@ import IconeContinha from '../../assets/IconChatbootIA.png';
 const FALLBACK_ICON = 'https://placehold.co/24x24/00ccff/ffffff?text=AI';
 const ICON_SRC = IconeContinha;
 
-// Captura a URL do webhook lá do .env ou usa o localhost se não tiver nada setado no env
+// Endpoints de Integração: Utiliza variável de ambiente com fallback prioritário para desenvolvimento.
 const API_URL = import.meta.env.VITE_N8N_WEBHOOK_URL || "http://localhost:5678/webhook/chatbot-unichristus";
 
-// Geradorzinho bem mequetrefe de Hash String pra enviar Sessions pro endpoint saber separar quem é quem (session-a7b2k...)
+// Utilitário de Sessão: Gera identificador único dinâmico para persistência condicional e monitoramento back-end.
 const generateSessionId = () => "session-" + Math.random().toString(36).substring(2, 9);
 
 
-// Componentezinho utilitário só pra printar avatares, caso quebre o SRC local tem tratante anti-erros.
+// Renderizador UI de Avatar: Encapsula falhas catastróficas de resource injetando mock-up visuais de resgate.
 const IconContinha = ({ src, alt, size, isRounded, style }) => (
     <img 
         src={src || FALLBACK_ICON} 
@@ -30,7 +30,7 @@ const IconContinha = ({ src, alt, size, isRounded, style }) => (
 );
 
 
-// Botóes fakes "Dicas Inicias" na tela de welcome vazia do bot pra instigar user iniciar um assunto 
+// Submódulo de Contexto Falso: Renderiza atalhos simulando entrada do usuário com base nas features do projeto.
 const ChatOptionButton = ({ text, onClick }) => (
     <button
         onClick={onClick}
@@ -47,7 +47,7 @@ const ChatOptionButton = ({ text, onClick }) => (
             fontWeight: 'bold',
             transition: 'background-color 0.3s',
         }}
-        // Pseudo-hover em React inline via JS.. da um trabalho mas evita muito arquivo CSS bagunçado.. 
+        // Tratamento inline de Hover effects 
         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#00ccff20'} 
         onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
     >
@@ -56,12 +56,12 @@ const ChatOptionButton = ({ text, onClick }) => (
 );
 
 
-// Renderizador dos balões do histórico do chat no body.
+// Componente de Visualização (Message Engine): Pinta as bolhas recursivas e ajusta margem por origin Role.
 const Message = ({ message }) => (
     
     <div style={{ 
         display: 'flex', 
-        // Se a mensagem partiu do proprio User q a gente ta logado, Empurra Flex-End (Direita do Whatspp), Senao Inicio esquerda padrao 
+        // Alinhamento condicional baseados no arquétipo 'user' ou 'model' estilo WhatsApp
         justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start', 
         marginBottom: '10px' 
     }}>
@@ -75,7 +75,7 @@ const Message = ({ message }) => (
             color: message.role === 'user' ? '#05142e' : '#e0e0e0',
             wordWrap: 'break-word',
             
-            // whitespace normal pra o markdown gerenciar os returns lá dps
+            // Fix de quebra de página: Permite ao renderizador dinâmico de MD estilizar o nó 
             whiteSpace: message.role === 'user' ? 'pre-wrap' : 'normal',
             boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
             fontSize: '0.9em',
@@ -83,7 +83,7 @@ const Message = ({ message }) => (
             overflowX: 'auto' 
         }}>
             
-            {/* Se quem spittou isso foi o IA, envelopa o string cru no ReactMarkdonw pra ele ficar com negrito, tabelas , links e estilos parseados por incrivel que paresa...   */}
+            {/* Middleware de Visualização: Envelopa markdown retornado pela IA aplicando os plugins CSS estativos*/}
             {message.role === 'model' ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {message.text}
@@ -99,42 +99,42 @@ const Message = ({ message }) => (
 
 const ChatbotUI = ({ onClose }) => {
     
-    // States core da UI 
+    // Core States (Memória e DOM) 
     const [inputText, setInputText] = useState('');
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     
-    // session ID lockado ate ele dar refresh na page
+    // Ciclo de Vida Sessão: Locked a menos de Refresh manual disparado 
     const [sessionId, setSessionId] = useState(generateSessionId());
     
-    // Controller de minimizar/mx widget size na area fixada direita. Toggle state 
+    // Toggle UI Controller
     const [isExpanded, setIsExpanded] = useState(false);
     
-    // Ref Node mágico pra rolar forçado a página toda vida nova array de msg atualizar o component
+    // Auto-Scroll Behavior: Ancora finalizando no target node.
     const messagesEndRef = useRef(null);
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
 
-    // O Dispatcher mor pro backend. Trata request pro N8N 
+    // Controller de Emissão de Ação: Constrói a pilha, exibe loaders e despacha Fetch 
     const handleSendMessage = async (text) => {
         
-        // Bloqueio de burrice do user que tentar enviar balao vazio ou espaço .
+        // Bloqueia transações nulas/strings de whitespace acidentais
         if (!text.trim()) return;
 
-        // Pampa na listagem state.
+        // Pusha para a DOM View React nativamente antes da requisição bater 
         const userMessage = { role: 'user', text };
         setMessages(prev => [...prev, userMessage]);
         
-        // Esvazia form 
+        // Libera Buffer 
         setInputText('');
         
-        // Loader pro botão e pro balão "escrevendo..." aparecer. Da um feelin mais maneiro 
+        // Emissão do Fallback Screen 'IA Escrevendo...'
         setIsLoading(true);
 
         try {
-            // Empacota padraozinho q montei lá no flow do N8N webhook
+            // Data Transfer Object
             const payload = {
                 mensagem: text,
                 sessionId: sessionId
@@ -148,7 +148,7 @@ const ChatbotUI = ({ onClose }) => {
 
             const result = await response.json();
             
-            // Isso aqui me salva na vida: independente se la no Flow no N8N a saida chamar Result, text , output bla... o js resolve fallback achando a chave certa 
+            // Normaliza a extração da string em multi-padrão (Variado por Node Final Externo)
             const responseText = result.resposta || result.output || result.text || result.response;
 
             const modelMessage = {
@@ -165,7 +165,7 @@ const ChatbotUI = ({ onClose }) => {
                 { role: 'model', text: 'Ocorreu um erro ao tentar responder. Tente novamente mais tarde.' }
             ]);
         } finally {
-            // Desengata marcha lente e libera UI .. 
+            // Garante reativação da Tree de inputs
             setIsLoading(false);
         }
     };
@@ -176,7 +176,7 @@ const ChatbotUI = ({ onClose }) => {
         console.log('Conversa limpa com novo ID gerado! Olá, eu sou Christina :)'); 
     };
 
-    /* ESTILOS DA CAIXA INLINE MAIS FEIOS POSSIVEIS...*/
+    /* Design CSS In-Line Padrões Absolutos */
     const panelStyle = {
         position: 'fixed',
         bottom: '90px',
@@ -224,7 +224,7 @@ const ChatbotUI = ({ onClose }) => {
         color: '#00ccff',
     };
     
-    // Bind enter key pra não ter q sempre dar o miss click na setinha miniatura ne..  se ele nao der shift key o negocio avanca msm
+    // Intercepta e normaliza teclas de atalho garantindo eficiência ao User
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -234,7 +234,7 @@ const ChatbotUI = ({ onClose }) => {
 
     return (
         <div style={panelStyle}>
-            {/* Headerzinho */}
+            {/* View do Header Estático */}
             <div style={headerStyle}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <IconContinha 
@@ -246,7 +246,7 @@ const ChatbotUI = ({ onClose }) => {
                     />
                     <span style={{ fontWeight: 'bold' }}>Christina</span>
                 </div>
-                {/* Panel action buttons de topo */}
+                {/* Componentes Controles Custom da Janela PAI */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <button onClick={handleClearChat} title="Nova Conversa" style={{ 
                         background: 'none', border: 'none', color: '#00ccff', fontSize: '1.1em', cursor: 'pointer' 
@@ -262,10 +262,10 @@ const ChatbotUI = ({ onClose }) => {
                 </div>
             </div>
 
-            {/* O miolo principal do historico de conversas */}
+            {/* Sessão Central (Scroll View de Conteúdo Principal) */}
             <div style={{ flexGrow: 1, padding: '15px', overflowY: 'auto' }}>
                 
-                {/* Helper screen: Se tá limpo o chat mostra um onbording da Christina e dicas pre programadas de perguntas  */}
+                {/* Modal View Inicial Base Padrão */}
                 {messages.length === 0 && (
                     <>
                         <p style={{ margin: '0 0 15px 0', color: '#ccc', fontSize: '0.9em' }}>
@@ -283,7 +283,7 @@ const ChatbotUI = ({ onClose }) => {
                     </>
                 )}
 
-                {/* Loopingzinho do React pra descarregar component Message p cada row historico */}
+                {/* Inject dinâmico de Rows no Node */}
                 {messages.map((msg, index) => (
                     <Message key={index} message={msg} />
                 ))}
@@ -294,10 +294,10 @@ const ChatbotUI = ({ onClose }) => {
                     </div>
                 )}
                 
-                {/* Essa tag invisible serve só p ancorar a ref Node do motor automatico de rolagem q chamei lá em cma */}
+                {/* Div Âncora Invisível (Recebe Focus de Tracking) */}
                 <div ref={messagesEndRef} /> 
 
-                {/* Se tiver balao.. mostre lá no chaozinha do chat que da p resetar */}
+                {/* Botão Utilitário Inferior de Flush (Somente se popilado) */}
                 {messages.length > 0 && (
                     <p 
                         style={{ margin: '15px 0 0 0', color: '#00ccff', textAlign: 'right', fontSize: '0.8em', cursor: 'pointer' }}
@@ -308,7 +308,7 @@ const ChatbotUI = ({ onClose }) => {
                 )}
             </div>
 
-            {/* Area do Formulário input */}
+            {/* Sessão Input Block */}
             <div style={inputAreaStyle}>
                 <input
                     type="text"
@@ -330,7 +330,7 @@ const ChatbotUI = ({ onClose }) => {
                     }}
                 />
                 
-                {/*  Botao bonitim redondo de Send.. Se ele ta loading ou sem char.. color dele é opaca sem chance dd interacao (notAlowed) */}
+                {/* Validaçao Lógica Bloqueadora de Submit Null/Aguardando */}
                 <button 
                     style={{ 
                         backgroundColor: (isLoading || !inputText.trim()) ? '#555' : '#00ccff', 

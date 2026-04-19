@@ -1,5 +1,15 @@
+/**
+ * ResultadoComparacao
+ * ---------------------------------------------------------
+ * Componente principal de Apresentação (View).
+ * Recebe os cálculos prontos (via Props) do App.jsx e renderiza
+ * comparativamente os cards de Pessoa Física e Jurídica em tela.
+ * Inclui também o motor de injeção da geração de PDF (react-pdf).
+ */
 import React from 'react';
-// Trazendo o vídeo placeholder maroto q fica rolando embedado no final do card
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import GeradorPDF from './GeradorPDF.jsx';
+// Importando o vídeozinho maroto embutido pra ficar tocando em loop no final da simulação
 import videoImposto from '../assets/Imposto_de_Renda__PF_ou_PJ_.mp4';
 
 // Instanciando logo o Intl pra formatar nossa bufunfa pra padrão R$ Brazuca certinho com ,00 
@@ -147,13 +157,28 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
                 Renda Bruta Mensal de Entrada: <span style={{ color: '#ffeb3b', fontWeight: 'bold' }}>{formatter.format(dadosEntrada.rendaMensal)}</span>
             </p>
 
-            {/* Injetando as divs dos cartôes que a gente buildou alí em cima  */}
+            {/* Injetando as caixas HTML da Pessoa Fisica e Juridica que montamos ali em cima */}
             <div style={cardContainerStyle}>
                 {CardPF}
                 {CardPJ}
             </div>
 
-            {/* Video Player dinâmico - puxando qual videourl é com base no cenário que deu Win. */}
+            {/* Alinhando todo aquele grande botão maravilhoso animado do PDF */}
+            <div style={{ marginTop: '35px', display: 'flex', justifyContent: 'center' }} className="animate-fade-in-up animate-delay-2">
+                <PDFDownloadLink
+                    document={<GeradorPDF dadosEntrada={dadosEntrada} resultadoPF={resultadoPF} resultadoPJ={resultadoPJ} />}
+                    fileName={`Comparativo_Tributario_${dadosEntrada.profissao}.pdf`}
+                    style={{ textDecoration: 'none' }}
+                >
+                    {({ loading }) => (
+                        <button className="btn-primary" style={{ width: 'auto', padding: '15px 40px', display: 'inline-block', minWidth: '300px' }} disabled={loading}>
+                            {loading ? '⏳ Montando Documento Dinâmico...' : '📄 Baixar Comparativo em PDF'}
+                        </button>
+                    )}
+                </PDFDownloadLink>
+            </div>
+
+            {/* Renderiza o tocador de vídeo só se tiver retornado uma URL válida com o resultado do imposto */}
             {videoUrl && (
                 <div style={{ marginTop: '40px', textAlign: 'center' }}>
                     <h3 style={{ color: '#ffeb3b', marginBottom: '20px' }}>
