@@ -12,11 +12,11 @@ import {Link} from "react-router-dom";
 // Componente Header padrão da aplicação
 const Header = () => {
 
-    // Configurando um objeto de estilo pros links do menu pra não ficar tacando CSS inline no JSX todo
+    // Configuração imutável de estilos CSS in JS para navegação estrutural
     const linkStyle = {
-        color: '#ccc',
-        textDecoration: 'none', // arranca aquele underline horrível das âncoras html 
-        fontSize: '1.1em',
+        color: '#FFF', 
+        textDecoration: 'none', // Supressão de sublinhados nativos do HTML 
+        display: 'inline-block',
         fontWeight: '500',
         padding: '8px 20px',
         borderRadius: '6px',
@@ -24,7 +24,7 @@ const Header = () => {
         position: 'relative'
     };
 
-    // Eventos de hover em JS pra dar feedback visual nas abas do navbar
+    // Controladores de interatividade por Hover (Feedback Visual)
     const handleMouseEnter = (e) => {
         e.target.style.color = '#007284';
         e.target.style.backgroundColor = 'rgba(0, 114, 132, 0.1)';

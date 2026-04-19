@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     borderRadius: 8,
-    backgroundColor: '#0b2236', /* Cor igual ao app para card nativo */
+    backgroundColor: '#0b2236',
     borderWidth: 1,
     borderColor: '#C0C0C0',
   },
@@ -77,9 +77,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 18,
     borderRadius: 8,
-    backgroundColor: '#072033', /* Cor igual ao card selecionado no App */
+    backgroundColor: '#072033',
     borderWidth: 3,
-    borderColor: '#ffeb3b', /* Borda dourada de vencedor */
+    borderColor: '#ffeb3b',
   },
   cardTitle: {
     fontSize: 14,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   valueHighlight: {
     fontSize: 10,
-    color: '#ffeb3b', /* Dourado de destaque do App */
+    color: '#ffeb3b',
     fontWeight: 'bold'
   },
   dividerDotted: {
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   liquidIncome: {
     fontSize: 14,
-    color: '#00ccff', /* Azul ciano de destaque do App */
+    color: '#00ccff',
     fontWeight: 'bold',
   },
   winnerBadge: {
@@ -255,20 +255,17 @@ const GeradorPDF = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
           </View>
         </View>
 
-        {/* Resumo de inputs da UI */}
         <View style={styles.summaryBar}>
           <Text style={styles.summaryText}>Profissão: {dadosEntrada.profissao.charAt(0).toUpperCase() + dadosEntrada.profissao.slice(1)}</Text>
           <Text style={styles.summaryText}>Receita Mensal: {formatter.format(dadosEntrada.rendaMensal)}</Text>
           <Text style={styles.summaryText}>Custos: {formatter.format(dadosEntrada.custosMensais)}</Text>
         </View>
 
-        {/* Box Model dos resultados PF e PJ */}
         <View style={styles.cardsContainer}>
           {renderCardPF()}
           {renderCardPJ()}
         </View>
 
-        {/* Informações de Disclaimer do rodapé */}
         <Text style={styles.footer}>
           * Os valores apresentados são simulações matemáticas baseadas nas alíquotas do Simples Nacional vigentes em 2024.
         </Text>

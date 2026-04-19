@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+/**
+ * Componente responsável prelo provisionamento de acesso de usuários.
+ * Implementa validação básica e gerência da sessão via requisição POST.
+ */
 const LoginUsuario = () => {
     const navigate = useNavigate();
 
@@ -27,6 +31,10 @@ const LoginUsuario = () => {
         }
     };
 
+    /**
+     * Efetua o scan dos atributos do estado local procurando inconsistências para block do submeter
+     * @returns {boolean} Retorna verdadeiro se a requisição pode avançar.
+     */
     const validateForm = () => {
         const newErrors = {};
 
@@ -42,6 +50,10 @@ const LoginUsuario = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    /**
+     * Dispara transação assíncrona para validar e construir sessão persistente
+     * do usuário em paralelo com os retornos do servidor.
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -71,7 +83,7 @@ const LoginUsuario = () => {
 
             const result = await response.json();
 
-            // Exemplo de salvar token
+            // Instancia em cache nativo (Local Storage) o Token Bearer da sessão
             localStorage.setItem("token", result.token);
 
             navigate('/');

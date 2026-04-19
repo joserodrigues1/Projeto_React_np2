@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+/**
+ * Componente responsável pelo registro de novos usuários no sistema.
+ * Gerencia validações locais de formulário e a integração com o endpoint de autenticação.
+ */
 const CadastroUsuario = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -27,17 +31,21 @@ const CadastroUsuario = () => {
         }
     };
 
+    /**
+     * Valida os campos do formulário antes da submissão assíncrona.
+     * @returns {boolean} Retorna verdadeiro caso o formulário seja válido.
+     */
     const validateForm = () => {
         const newErrors = {};
 
-        // Validação do nome
+        // Restrição de preenchimento e logométrica para Nome
         if (!formData.nome.trim()) {
             newErrors.nome = 'Nome é obrigatório';
         } else if (formData.nome.trim().length < 3) {
             newErrors.nome = 'Nome deve ter pelo menos 3 caracteres';
         }
 
-        // Validação do email
+        // Restrição de formato JWT RFC5322 básico para E-mail
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
             newErrors.email = 'Email é obrigatório';
@@ -45,7 +53,7 @@ const CadastroUsuario = () => {
             newErrors.email = 'Email inválido';
         }
 
-        // Validação da idade
+        // Validação de intervalo etário para qualificação contratual
         if (!formData.idade) {
             newErrors.idade = 'Idade é obrigatória';
         } else if (formData.idade < 18) {
@@ -54,7 +62,7 @@ const CadastroUsuario = () => {
             newErrors.idade = 'Idade inválida';
         }
 
-        // Validação da senha
+        // Validação de resiliência criptográfica local (Comprimento mínimo)
         if (!formData.senha.trim()) {
             newErrors.senha = 'Senha é obrigatória';
         } else if (formData.senha.length < 6) {
@@ -65,6 +73,10 @@ const CadastroUsuario = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    /**
+     * Lida com a requisição de cadastro enviando carga útil para a central de autenticação.
+     * Interrompe em caso de anomalias sintáticas do formulário.
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -96,7 +108,7 @@ const CadastroUsuario = () => {
 
             const result = await response.json();
 
-            // Ex: salvar token, usuário, ou simplesmente redirecionar
+            // TODO: Integrar lógica de persistência de sessão Pós-Cadastro (ex: Context API ou Redux)
             // localStorage.setItem('token', result.token);
 
             navigate('/');

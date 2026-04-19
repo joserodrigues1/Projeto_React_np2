@@ -1,6 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Componente AjudaPage.
+ * Utilizado para prestar esclarecimentos lexicais aos usuários a respeito
+ * dos artefatos financeiros coletados pelo motor de cálculo principal.
+ */
 const AjudaPage = () => {
     const containerStyle = {
         maxWidth: '800px',

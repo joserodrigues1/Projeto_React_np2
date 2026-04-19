@@ -9,10 +9,10 @@
 import React from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import GeradorPDF from './GeradorPDF.jsx';
-// Importando o vídeozinho maroto embutido pra ficar tocando em loop no final da simulação
+// Asset multimídia de fundo
 import videoImposto from '../assets/Imposto_de_Renda__PF_ou_PJ_.mp4';
 
-// Instanciando logo o Intl pra formatar nossa bufunfa pra padrão R$ Brazuca certinho com ,00 
+// Utilitário global para padronização monetária (BRL)
 const formatter = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -26,7 +26,7 @@ const tituloStyle = { /* ... */ };
 const cardContainerStyle = { display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', gap: '20px', marginTop: '30px' };
 const cardBaseStyle = { /* ... */ };
 
-// Helpezinho de CSS pra pintar o Card vencedor com uma bordinha dourada/amarela e fundinho azul mais escuro, dando aquele Tchan
+// Retorna declaração CSS-in-JS dinâmica para o card predominante 
 const destaqueStyle = (isMelhor) => ({
     padding: '18px',
     borderRadius: '8px',
@@ -38,7 +38,7 @@ const destaqueStyle = (isMelhor) => ({
 
 const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
 
-    // Um mini-dicinário pra gente plugar os vídeos certos baseados na profissão e se valeu a pena meter uma PF ou PJ.
+    // Dicionário de associações em mídia para suporte dinâmico no renderizador
     const videoUrls = {
         psicologo: {
             PF: videoImposto,
@@ -54,7 +54,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
         }
     };
 
-    // Segurança anti-crash: se tiver renderizando vazio antes do usuário clicar no "Calcular" esconde o componente main e mostra uma call-to-action
+    // Fallback de contingência para evitar re-render de estado nulo antes da submissão primária
     if (!dadosEntrada || !resultadoPF || !resultadoPJ) {
         return (
             <div id="resultado-comparacao" style={containerStyle}>
@@ -66,17 +66,17 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
         );
     }
 
-    // Pega a grana q sobrou no bolso no fim do rolê
+    // Extração das métricas finais de liquidez
     const rendaPFLiquida = resultadoPF.rendaLiquida;
     const rendaPJLiquida = resultadoPJ.rendaLiquida;
 
-    // Lógica boba quem sobrar com mais no fim é o "isMelhor = TRUE" 
+    // Avaliação do melhor enquadramento fiscal
     const isPFMelhor = rendaPFLiquida >= rendaPJLiquida;
 
-    // Configurando as views pro render do video abaixo
+    // Resolução encadeada do asset multimídia
     const profissao = dadosEntrada.profissao;
     const melhorOpcao = isPFMelhor ? 'PF' : 'PJ';
-    const videoUrl = videoUrls[profissao]?.[melhorOpcao] || videoImposto; // Fallback garantido se n achar o link
+    const videoUrl = videoUrls[profissao]?.[melhorOpcao] || videoImposto; // Prevenção contra falha de injeção e fallback seguro
 
 
     /* ----------------------------------------------------
@@ -84,7 +84,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
     ------------------------------------------------------ */
     const CardPF = (
         <div style={destaqueStyle(isPFMelhor)} className={`card-comparacao animate-fade-in-up animate-delay-1 ${isPFMelhor ? 'animate-winner' : ''}`}>
-            {/* Header condicional aceso ou apagado */}
+            {/* Renderização dinâmica do header */}
             <h4 style={{ color: isPFMelhor ? '#00ccff' : 'white', borderBottom: '1px solid #1e3c72', paddingBottom: '10px' }}>
                 Pessoa Física (PF)
             </h4>
@@ -93,7 +93,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
             <p><strong>Custos Mensais:</strong> {formatter.format(dadosEntrada.custosMensais)}</p>
 
             <p><strong>Base de Cálculo (IRPF):</strong> {formatter.format(resultadoPF.basePF)}</p>
-            {/* Dói no rim ter que pagar isso tudo... amarelinho pra alertar */}
+            {/* Destaque visual do imposto calculado */}
             <p><strong>IRPF a Pagar:</strong> <strong style={{ color: '#ffeb3b' }}>{formatter.format(resultadoPF.imposto)}</strong></p>
 
             <hr style={{ borderColor: '#1e3c72', margin: '15px 0' }} />
@@ -102,7 +102,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
                 Renda Líquida (Simplificada): {formatter.format(rendaPFLiquida)}
             </h3>
 
-            {/* Selo amarelho de VENCEDOR aqui... e que vença o q sobrar mais kkkk */}
+            {/* Indicador visual de benefício financeiro */}
             {isPFMelhor && <p style={{ color: '#ffeb3b', fontWeight: 'bold' }}>&#9733; MELHOR OPÇÃO</p>}
         </div>
     );
@@ -119,7 +119,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
 
             <p><strong>Renda Mensal:</strong> {formatter.format(dadosEntrada.rendaMensal)}</p>
 
-            {/* Condicional pro render chato do Advogado onde o ProLabore é flat rate 1,6K e tem aquela cota patronal horrivel */}
+            {/* Tratamento específico para a classe de Advocacia Anexo IV */}
             {dadosEntrada.profissao === 'advogado' ? (
                 <>
                     <p><strong>Simples Nacional (4.5%):</strong> {formatter.format(resultadoPJ.simples_nac)}</p>
@@ -129,7 +129,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
                 </>
             ) : (
                 <>
-                    {/* Render basicão pro resto dos mortais */}
+                    {/* Tratamento padrão para outras profissões (Fator R) */}
                     <p><strong>28% da Renda (Pró-Labore):</strong> {formatter.format(resultadoPJ.pro_labore)}</p>
                     <p><strong>Simples Nacional (6%):</strong> {formatter.format(resultadoPJ.simples_nac)}</p>
                     <p><strong>INSS (11%):</strong> {formatter.format(resultadoPJ.inss)}</p>

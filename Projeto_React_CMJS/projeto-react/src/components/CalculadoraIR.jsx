@@ -1,23 +1,24 @@
 /**
- * Lógicas de Cálculos Tributários (PF e PJ)
- * ---------------------------------------------------------
- * Algoritmos extraídos e encapsulados para viabilizar simulações
- * do IRPF (Tabela Progressiva) e Simples Nacional (Anexos III e IV).
+ * Realiza o cálculo do Imposto de Renda Pessoa Física (IRPF).
+ * 
+ * @param {number|string} rendaMensal - O valor da receita bruta mensal.
+ * @param {number|string} custosMensais - As despesas dedutíveis associadas à profissão.
+ * @returns {object} Objeto detalhado contendo a base de cálculo, deduções e imposto devido.
  */
 export function calculadoraIRPF(rendaMensal, custosMensais) {
-    // Sanitização e conversão de tipos de entrada para cálculo matemático
+    // Conversão de segurança para numérico
     const renda = Number(rendaMensal);
     const custos = Number(custosMensais);
     
-    // Definição da base de cálculo descontando custos operacionais/deduções
+    // Calcula a base de incidência subtraindo as despesas da receita bruta
     const basePF = renda - custos;
     let imposto = 0;
     let deducao = 0;
 
-    // Aplicação das faixas baseadas na Tabela Progressiva Anual (Mensalizada) do IRPF
+    // Define faixas e parcelas a deduzir conforme a Tabela Progressiva Anual do IRPF
     if (basePF <= 2428.8) {
         imposto = 0;
-        deducao = 0; // Faixa de isenção
+        deducao = 0; // Faixa isenta de tributação
     } else if (basePF >= 2428.81 && basePF <= 2826.65) {
         deducao = 182.16;
         imposto = (basePF * 0.075) - deducao;  
@@ -28,26 +29,26 @@ export function calculadoraIRPF(rendaMensal, custosMensais) {
         deducao = 675.49;
         imposto = (basePF * 0.225) - deducao;
     } else {
-        // Teto limite: Alíquota máxima fixada em 27,5%
+        // Alíquota máxima do IRPF (27,5% sobre a base excedente)
         deducao = 908.73;
         imposto = (basePF * 0.275) - deducao;
     }
 
-    // Tabela 2: Fator de amortização progressiva beneficiando as faixas primárias
+    // Tabela 2: Fator de redução progressiva para faixas de renda inferiores
     let valorReducao = 0;
 
     if (renda <= 5000) {
-        valorReducao = 312.89; // Redução majorada para faixas inferiores à R$ 5.000
+        valorReducao = 312.89; // Isenção aplicável para retornos de baixa renda
     } else if (renda <= 7350) {
-        valorReducao = 978.62 - (0.133145 * renda); // Cálculo atuarial de amortização escalonada
+        valorReducao = 978.62 - (0.133145 * renda); // Cálculo de amortização gradual
     } else {
-        valorReducao = 0; // Faixas superiores cessam benefício de redução
+        valorReducao = 0; // Sem teto de amortização aplicável
     }
 
-    // Cálculo do tributo abatendo a redução e impedindo valores nominais negativos
+    // Garante a não-negatividade do tributo calculado
     imposto = Math.max(0, imposto - Math.max(0, valorReducao));
 
-    // Definição do Rendimento Líquido final pós-tributos
+    // Determinação final do montante líquido pós impostos
     const rendaLiquida = renda - imposto;
 
     return {
@@ -62,22 +63,27 @@ export function calculadoraIRPF(rendaMensal, custosMensais) {
 
 
 /**
- * Algoritmo contábil da modalidade Pessoa Jurídica (Simples Nacional)
- * Parametrizado com base em anexos específicos da profissão.
+ * Realiza o cálculo do Imposto de Renda Pessoa Jurídica (IRPJ),
+ * aplicando regras específicas por ramo de atividade e Simples Nacional.
+ * 
+ * @param {number|string} rendaMensal - Receita bruta estimada.
+ * @param {string} profissao - Atividade econômica vinculada.
+ * @returns {object} Retorna estrutura com detalhamento de INSS, Pró-labore e Simples.
  */
 export function calculadoraIRPJ(rendaMensal, profissao) {
     const renda = Number(rendaMensal);
 
-    // Condicionais de Anexos Fiscais de acordo com CNAE e regimento específico da profissão
+    // Diferenciação de cálculo baseada na classificação de atividades do regime
     if(profissao === "psicologo" || profissao === "arquiteto"){
         
-        // Simples Nacional: Alíquota referencial do Anexo III
+        // Aplicação do Anexo III do Simples Nacional (Referência Base: 6%)
         const simples_nac = renda * 0.06;
         
-        // Aplicação da regra do Fator R: Pro-labore estipulado em 28% visando isenção/estabilização de alíquota
+        // Fator R: Proporção mínima de 28% da folha de pagamento obrigatória 
+        // para adequação de faixa de Serviços Intelectuais
         const pro_labore = renda * 0.28;
         
-        // Incidência de INSS Patronal aplicada exclusivamente sobre o Pró-labore
+        // Recolhimento Previdenciário (INSS) sobre pro-labore estipulado (11%)
         const inss = pro_labore * 0.11;
         
         const imposto = simples_nac + inss;
@@ -94,14 +100,14 @@ export function calculadoraIRPJ(rendaMensal, profissao) {
     }
     else if(profissao === "advogado"){
         
-        // Simples Nacional: Alíquota referencial do Anexo IV focado (Alíquota nominal básica: 4.5%)
+        // Subsequente aplicável ao Anexo IV do Simples Nacional p/ serviços jurídicos (4.5% efetivos)
         const simples_nac = renda * 0.045;
         
-        // Retirada Fixa de Pró-labore adotada internamente pelo escritório/aplicação
+        // Valor referencial fixo de retirada base
         const pro_labore = 1621;
         const perce28 = pro_labore;
         
-        // Rateio de Contribuição Previdenciária englobando Cota Patronal majorada
+        // Precatório de retenção em cota de empregado (11%) e Encargos de CPP Patronal (20%)
         const inss = pro_labore * 0.11;
         const inss_patronal = pro_labore * 0.20;
         

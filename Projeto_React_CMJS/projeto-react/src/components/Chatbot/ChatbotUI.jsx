@@ -3,17 +3,23 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import IconeContinha from '../../assets/IconChatbootIA.png';
 
+/**
+ * Variáveis de ambiente e configuração de sistema
+ */
 const FALLBACK_ICON = 'https://placehold.co/24x24/00ccff/ffffff?text=AI';
 const ICON_SRC = IconeContinha;
 
-// Endpoints de Integração: Utiliza variável de ambiente com fallback prioritário para desenvolvimento.
+// Define o endpoint local ou web de integração com os automadores do N8N
 const API_URL = import.meta.env.VITE_N8N_WEBHOOK_URL || "http://localhost:5678/webhook/chatbot-unichristus";
 
-// Utilitário de Sessão: Gera identificador único dinâmico para persistência condicional e monitoramento back-end.
+/**
+ * Função utilitária para gerar IDs randômicos de sessões exclusivas.
+ */
 const generateSessionId = () => "session-" + Math.random().toString(36).substring(2, 9);
 
-
-// Renderizador UI de Avatar: Encapsula falhas catastróficas de resource injetando mock-up visuais de resgate.
+/**
+ * Componente funcional para renderizar de forma fluida os ícones avatares.
+ */
 const IconContinha = ({ src, alt, size, isRounded, style }) => (
     <img 
         src={src || FALLBACK_ICON} 
@@ -30,7 +36,10 @@ const IconContinha = ({ src, alt, size, isRounded, style }) => (
 );
 
 
-// Submódulo de Contexto Falso: Renderiza atalhos simulando entrada do usuário com base nas features do projeto.
+/**
+ * Módulo de Interface para Botões Sugestivos Opcionais.
+ * Injeta ações contextuais na árvore inicial para encorajar as primeiras interações do usuário.
+ */
 const ChatOptionButton = ({ text, onClick }) => (
     <button
         onClick={onClick}
@@ -47,7 +56,7 @@ const ChatOptionButton = ({ text, onClick }) => (
             fontWeight: 'bold',
             transition: 'background-color 0.3s',
         }}
-        // Tratamento inline de Hover effects 
+        // Efeito visual via React Sintético para prevenir instâncias complexas ou vazamentos de escopo de CSS.
         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#00ccff20'} 
         onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
     >
@@ -56,12 +65,15 @@ const ChatOptionButton = ({ text, onClick }) => (
 );
 
 
-// Componente de Visualização (Message Engine): Pinta as bolhas recursivas e ajusta margem por origin Role.
+/**
+ * Container principal do histórico interno de mensagens, lidando nativamente
+ * com alinhamento dinâmico dependendo da role originária do node de mensagem.
+ */
 const Message = ({ message }) => (
     
     <div style={{ 
         display: 'flex', 
-        // Alinhamento condicional baseados no arquétipo 'user' ou 'model' estilo WhatsApp
+        // Alinhamento das bolhas: modelo "user" flutua à direita, "model" ou "IA" flutuam à esquerda
         justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start', 
         marginBottom: '10px' 
     }}>
@@ -70,12 +82,12 @@ const Message = ({ message }) => (
             padding: '10px 15px',
             borderRadius: '18px',
             
-            // UI Color theme - User = azul claro, Bot = escuro
+            // Dinâmica visual (Dark background para respostas do bot e destaque saturado ao usuário)
             backgroundColor: message.role === 'user' ? '#00ccff' : '#152540',
             color: message.role === 'user' ? '#05142e' : '#e0e0e0',
             wordWrap: 'break-word',
             
-            // Fix de quebra de página: Permite ao renderizador dinâmico de MD estilizar o nó 
+            // Tratamento formativo de wrap mantendo os quebras de linha Markdown consistentes
             whiteSpace: message.role === 'user' ? 'pre-wrap' : 'normal',
             boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
             fontSize: '0.9em',
@@ -83,7 +95,7 @@ const Message = ({ message }) => (
             overflowX: 'auto' 
         }}>
             
-            {/* Middleware de Visualização: Envelopa markdown retornado pela IA aplicando os plugins CSS estativos*/}
+            {/* Parser de Markdown para renderizar as saídas enriquecidas (ex: Links, Tabelas ou Bullets) via LLM. */}
             {message.role === 'model' ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {message.text}
@@ -99,42 +111,45 @@ const Message = ({ message }) => (
 
 const ChatbotUI = ({ onClose }) => {
     
-    // Core States (Memória e DOM) 
+    // Variáveis de controle comportamental da interface de chat 
     const [inputText, setInputText] = useState('');
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     
-    // Ciclo de Vida Sessão: Locked a menos de Refresh manual disparado 
+    // Hash único local da sessão atual do chat do usuário, preservado até desmontagem completa do container
     const [sessionId, setSessionId] = useState(generateSessionId());
     
-    // Toggle UI Controller
+    // Gerência de redimensionamento espacial do Widget da interface.
     const [isExpanded, setIsExpanded] = useState(false);
     
-    // Auto-Scroll Behavior: Ancora finalizando no target node.
+    // Referência do DOM para forçar smooth scrolling perfeitamente contínuo
     const messagesEndRef = useRef(null);
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
 
-    // Controller de Emissão de Ação: Constrói a pilha, exibe loaders e despacha Fetch 
+    /**
+     * Controlador central para processamento e envio assíncrono das requisições, conectando ao endpoint configurado no .env da build.
+     * @param {string} text - Contéudo da mensagem transcrita.
+     */
     const handleSendMessage = async (text) => {
         
-        // Bloqueia transações nulas/strings de whitespace acidentais
+        // Bloqueia tentativas de envio com strings totalmente vazias
         if (!text.trim()) return;
 
-        // Pusha para a DOM View React nativamente antes da requisição bater 
+        // Anexa input atual na stack em memória
         const userMessage = { role: 'user', text };
         setMessages(prev => [...prev, userMessage]);
         
-        // Libera Buffer 
+        // Refresh na barra de digitação visual
         setInputText('');
         
-        // Emissão do Fallback Screen 'IA Escrevendo...'
+        // Assina feedback visual "typing"
         setIsLoading(true);
 
         try {
-            // Data Transfer Object
+            // Empacotamento do payload alinhado às chaves mapeadas pela Webhook N8N
             const payload = {
                 mensagem: text,
                 sessionId: sessionId
@@ -148,7 +163,7 @@ const ChatbotUI = ({ onClose }) => {
 
             const result = await response.json();
             
-            // Normaliza a extração da string em multi-padrão (Variado por Node Final Externo)
+            // Processamento agnóstico da resposta, aceitando múltiplas predefinições de variáveis do corpo JSON 
             const responseText = result.resposta || result.output || result.text || result.response;
 
             const modelMessage = {
@@ -165,7 +180,7 @@ const ChatbotUI = ({ onClose }) => {
                 { role: 'model', text: 'Ocorreu um erro ao tentar responder. Tente novamente mais tarde.' }
             ]);
         } finally {
-            // Garante reativação da Tree de inputs
+            // Encerra state Loading libertando o UI lock
             setIsLoading(false);
         }
     };
@@ -176,7 +191,11 @@ const ChatbotUI = ({ onClose }) => {
         console.log('Conversa limpa com novo ID gerado! Olá, eu sou Christina :)'); 
     };
 
-    /* Design CSS In-Line Padrões Absolutos */
+    /*  
+        =======================================
+        CONSTANTES DE ESTILIZAÇÃO DO COMPONENTE
+        ======================================= 
+    */
     const panelStyle = {
         position: 'fixed',
         bottom: '90px',
@@ -224,8 +243,9 @@ const ChatbotUI = ({ onClose }) => {
         color: '#00ccff',
     };
     
-    // Intercepta e normaliza teclas de atalho garantindo eficiência ao User
+    // Handler de eventos chave focando interceptação de inputs e dispatch no enter principal
     const handleKeyDown = (e) => {
+        // Evita Trigger de envio em caso da flag Shift (para saltos de quebra de linha em formulários)
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage(inputText);
@@ -234,7 +254,7 @@ const ChatbotUI = ({ onClose }) => {
 
     return (
         <div style={panelStyle}>
-            {/* View do Header Estático */}
+            {/* Secção Header */}
             <div style={headerStyle}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <IconContinha 
@@ -246,7 +266,7 @@ const ChatbotUI = ({ onClose }) => {
                     />
                     <span style={{ fontWeight: 'bold' }}>Christina</span>
                 </div>
-                {/* Componentes Controles Custom da Janela PAI */}
+                {/* Grupo interativo de Menu */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <button onClick={handleClearChat} title="Nova Conversa" style={{ 
                         background: 'none', border: 'none', color: '#00ccff', fontSize: '1.1em', cursor: 'pointer' 
@@ -262,10 +282,10 @@ const ChatbotUI = ({ onClose }) => {
                 </div>
             </div>
 
-            {/* Sessão Central (Scroll View de Conteúdo Principal) */}
+            {/* Ponto principal da listagem sequencial de mensagens */}
             <div style={{ flexGrow: 1, padding: '15px', overflowY: 'auto' }}>
                 
-                {/* Modal View Inicial Base Padrão */}
+                {/* Helper screen dinâmico: Exibido primariamente caso o estado local esteja despovoado */}
                 {messages.length === 0 && (
                     <>
                         <p style={{ margin: '0 0 15px 0', color: '#ccc', fontSize: '0.9em' }}>
@@ -283,7 +303,7 @@ const ChatbotUI = ({ onClose }) => {
                     </>
                 )}
 
-                {/* Inject dinâmico de Rows no Node */}
+                {/* Varredura hierárquica baseada na array Stateful de mensagens */}
                 {messages.map((msg, index) => (
                     <Message key={index} message={msg} />
                 ))}
@@ -294,10 +314,10 @@ const ChatbotUI = ({ onClose }) => {
                     </div>
                 )}
                 
-                {/* Div Âncora Invisível (Recebe Focus de Tracking) */}
+                {/* Div Âncora técnica referenciada para o fluxo de auto-scroll */}
                 <div ref={messagesEndRef} /> 
 
-                {/* Botão Utilitário Inferior de Flush (Somente se popilado) */}
+                {/* Exibição condicional da funcionalidade de Hard Reset de Fluxo UI */}
                 {messages.length > 0 && (
                     <p 
                         style={{ margin: '15px 0 0 0', color: '#00ccff', textAlign: 'right', fontSize: '0.8em', cursor: 'pointer' }}
@@ -308,7 +328,7 @@ const ChatbotUI = ({ onClose }) => {
                 )}
             </div>
 
-            {/* Sessão Input Block */}
+            {/* Interface Inferior (Formulário/Captura Textual) */}
             <div style={inputAreaStyle}>
                 <input
                     type="text"
@@ -330,7 +350,7 @@ const ChatbotUI = ({ onClose }) => {
                     }}
                 />
                 
-                {/* Validaçao Lógica Bloqueadora de Submit Null/Aguardando */}
+                {/* Interatividade do envio visual: Focado em usabilidade bloqueada com states */}
                 <button 
                     style={{ 
                         backgroundColor: (isLoading || !inputText.trim()) ? '#555' : '#00ccff', 

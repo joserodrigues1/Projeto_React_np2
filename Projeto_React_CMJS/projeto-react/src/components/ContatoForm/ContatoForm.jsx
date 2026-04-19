@@ -2,48 +2,49 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form'; // ⬅️ IMPORTADO
 
 /**
- * Componente do Formulário de Contato 
- * Implementa validação reativa e gerencia status assíncronos de envios para e-mail/banco de dados via serviço externo.
+ * Componente do Formulário de Contato para interação com suporte.
+ * Reúne estados de controle assíncronos e verificação em tempo real (via Form Hooks).
+ * O componente recebe a prop controladora `onSubmitContato`.
  */
 const ContatoForm = ({ onSubmitContato }) => {
     const navigate = useNavigate();
     
-    // Injeção de dependência e controle nativo da view via useForm
+    // Injeção de hooks validadores de estados
     const { register, handleSubmit, formState: { errors } } = useForm();
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
-    const [submitError, setSubmitError] = useState(null); 
+    const [submitError, setSubmitError] = useState(null);
 
-    // Controller Dispatcher que trata a comunicação entre a interface local e o repositório/service externo 
+    /**
+     * Intercepta o evento interno submetido por useForm e encaminha ao dispatch global
+     */
     const onSubmit = async (formData) => {
         setIsSubmitting(true);
         setSubmissionSuccess(false);
         setSubmitError(null); 
 
         try {
-            // Callback invocando camada de serviço superior
+            // Chama a função de envio centralizada no App.jsx
             const result = await onSubmitContato(formData); 
             
             if (result.success) {
                 console.log("Mensagem de contato enviada com sucesso.");
                 setSubmissionSuccess(true);
                 
-                // O hook form gerencia a limpeza do formulário (reset não é necessário se não houver defaultValue)
-                // Se precisar limpar explicitamente, use: reset();
-                
+                // Transação bem-sucedida, oculta a notificação após expirar timeout
                 setTimeout(() => setSubmissionSuccess(false), 5000);
             } else {
-                // Instancia exceção sobre falha tratada pelo serviço 
+                // Exibe o erro retornado pelo App.jsx (Backend)
                 throw new Error(result.error);
             }
 
         } catch (error) {
             console.error('Erro ao enviar contato:', error);
-            // Delegação e exibição do escopo de erro emitido pelo provedor de API
+            // Captura e exibe a mensagem de erro da API
             setSubmitError(error.message || 'Erro ao enviar sua mensagem. Tente novamente.');
         } finally {
             setIsSubmitting(false);
@@ -54,7 +55,10 @@ const ContatoForm = ({ onSubmitContato }) => {
         navigate('/');
     };
     
-    /* Padrões de Estilização CSS-in-JS Locais */
+    // =================================================================
+    // DECLARAÇÃO DE ESTILOS CSS IN JS (SCOPE DO COMPONENTE)
+    // =================================================================
+
     const formWrapperStyle = {
         minHeight: '60vh',
         display: 'flex',
@@ -119,10 +123,9 @@ const ContatoForm = ({ onSubmitContato }) => {
     
     const submitButtonStyle = {
         ...buttonStyle,
-        // Aplica o gradiente da CalculadoraForm
-        background: isSubmitting 
-            ? '#ccc' // Cinza quando estiver enviando
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: isSubmitting
+            ? '#ccc' // Fallback de desativação
+            : 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // Aplica estética da paleta principal
         color: 'white',
         pointerEvents: isSubmitting ? 'none' : 'auto', 
     };
@@ -176,7 +179,7 @@ const ContatoForm = ({ onSubmitContato }) => {
                         </div>
                     )}
 
-                    {/* Campo de Entrada: Nome */}
+                    {/* CAMPO NOME */}
                     <div style={formGroupStyle}>
                         <label htmlFor="nome" style={labelStyle}>Nome Completo *</label>
                         <input
@@ -192,7 +195,7 @@ const ContatoForm = ({ onSubmitContato }) => {
                         {errors.nome && <p style={errorTextStyle}>{errors.nome.message}</p>}
                     </div>
 
-                    {/* Campo de Entrada: Email */}
+                    {/* CAMPO EMAIL */}
                     <div style={formGroupStyle}>
                         <label htmlFor="email" style={labelStyle}>Email *</label>
                         <input
@@ -211,7 +214,7 @@ const ContatoForm = ({ onSubmitContato }) => {
                         {errors.email && <p style={errorTextStyle}>{errors.email.message}</p>}
                     </div>
 
-                    {/* Campo de Entrada: Descritivo Textarea */}
+                    {/* CAMPO DÚVIDA/MENSAGEM */}
                     <div style={formGroupStyle}>
                         <label htmlFor="duvida" style={labelStyle}>Sugestões/Dúvidas *</label>
                         <textarea

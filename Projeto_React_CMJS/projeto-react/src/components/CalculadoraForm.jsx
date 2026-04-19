@@ -16,11 +16,10 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
 
     // Inicia os hooks do react-hook-form para checar a digitação em tempo real
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
-    
-    // Fica vigiando para ver se o usuário liga ou desliga o botãozinho de enviar email
+    // Observer reativo associado à feature de emissão de email
     const enviarEmailCheck = watch('enviarEmail', false);
     
-    // Guarda momentaneamente a mensagem verde informando que "Deu Certo"
+    // Controlador de feedback visual transitório
     const [mensagemSucesso, setMensagemSucesso] = useState(null);
     const [isCalculating, setIsCalculating] = useState(false);
 
@@ -35,12 +34,12 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
      */
     const onSubmit = (dados) => {
         setIsCalculating(true);
-        // Dá um tempinho de 800ms simulando carregamento, para o usuário ver o estado mudando da tela
+        // Tratamento e formatação de dados antes da invocação síncrona
         setTimeout(() => {
-        // Função auxiliar pra converter os valores: se tiver vírgula brasileira, troca por ponto para o JavaScript conseguir somar
+        // Função auxiliar para cast tipado de dados financeiros pt-BR para notação de cálculo JS
         const converterParaNumero = (valor) => {
             if (typeof valor === 'string') {
-                return Number(valor.replace(',', '.')); // troca , por ponto e converte bruto
+                return Number(valor.replace(',', '.')); // Sanitização pre-Parse numérico
             }
             return Number(valor) || 0;
         };
@@ -48,7 +47,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         const rendaValida = converterParaNumero(dados.rendaMensal);
         const custosValidos = converterParaNumero(dados.custosMensais);
 
-        // Empacota todos os formulários num formato bonitinho para enviar pra página principal
+        // Objeto de payload gerado pela camada View para dispatcher
         const dadosParaProp = {
             tipoCalculo: dados.profissao === 'psicologo' ? 'PF' : 'PJ',
             renda: rendaValida,
@@ -58,14 +57,14 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
             profissao: dados.profissao,
         };
 
-        // Envia as informações empacotadas lá pro componente pai (App.jsx)
+        // Disparo do Controller no componente ancestral
         if (onDataSubmit) {
             onDataSubmit(dadosParaProp);
             setMensagemSucesso("✅ Dados enviados para cálculo e comparação.");
             setIsCalculating(false);
-            setTimeout(() => setMensagemSucesso(null), 5000); // Apaga a mensagem verde depois de 5 segundos
+            setTimeout(() => setMensagemSucesso(null), 5000); // Auto-extinção do toast (5s)
         }
-        }, 800); // Tempo do carregamento falso para gerar melhor percepção ao calcular
+        }, 800); // Emula tempo de carga via setTimeout por motivo de UX
     };
 
     /** Objetos de Estilização em JS (CSS-in-JS) **/
@@ -99,7 +98,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
     const inputStyle = (isError) => ({
         width: '100%',
         padding: '12px',
-        border: isError ? '1px solid #E53E3E' : '1px solid #CBD5E0', // Pinta a borda de vermelho se alguém não preencheu certo
+        border: isError ? '1px solid #E53E3E' : '1px solid #CBD5E0', // Sinalização visual atrelada ao evento 'isError'
         borderRadius: '6px',
         fontSize: '1em',
         boxSizing: 'border-box',
@@ -122,7 +121,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         fontWeight: 'bold',
         fontSize: '1.1em',
         cursor: 'pointer',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Gradiente roxo principal do layout
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Gradiente estrutural e padrão da aplicação
         transition: 'opacity 0.3s',
     };
 
@@ -137,7 +136,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
 
     return (
         <div style={formWrapperStyle}>
-            {/* O handleSubmit envelopa tudo, então só prossegue se as regras escritas no input baterem certinho */}
+            {/* Wrapper condicional de validação acoplado às referências react-hook-form */}
             <form onSubmit={handleSubmit(onSubmit)} className="calculadora-form">
                 <h2 style={titleStyle}>Informe os Dados</h2>
 

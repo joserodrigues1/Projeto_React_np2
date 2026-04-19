@@ -6,7 +6,6 @@ import App from './App.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Precisamos do BrowserRouter englobando o App pra as rotas do vite funcionarem normal */}
     <BrowserRouter>
       <App />
     </BrowserRouter>
