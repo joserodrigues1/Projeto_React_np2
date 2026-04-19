@@ -193,11 +193,18 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     </select>
                 </div>
 
-                {/* Feature de envio de email. Comentada por enquanto caso precise no futuro... 
-                <div style={checkboxGroupStyle}>
-                    <input id="enviarEmailCheck" type="checkbox" {...register("enviarEmail")} />
-                    <label htmlFor="enviarEmailCheck" style={checkboxLabelStyle}>Deseja enviar via e-mail?</label>
-                </div> */}
+                <div style={{ ...formGroupStyle, display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', marginTop: '10px' }}>
+                    <label className="toggle-switch" htmlFor="enviarEmailCheck">
+                        <input id="enviarEmailCheck" type="checkbox" {...register("enviarEmail")} />
+                        <span className="toggle-slider"></span>
+                    </label>
+                    <span 
+                        style={{ fontWeight: '600', color: '#4a5568', cursor: 'pointer', fontSize: '15px' }} 
+                        onClick={() => document.getElementById('enviarEmailCheck').click()}
+                    >
+                        Deseja enviar o resultado via e-mail?
+                    </span>
+                </div>
                 
                 {/* Bloco Dinâmico: só renderiza emailUsuario se a checkbox Email tiver ticada  */}
                 {enviarEmailCheck && (

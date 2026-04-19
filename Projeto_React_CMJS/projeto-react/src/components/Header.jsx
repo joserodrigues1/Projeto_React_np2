@@ -87,13 +87,9 @@ const Header = () => {
                 Perguntas Frequentes
             </Link>
             
-            {/* 
-            Essas abas estão escondidas temporariamente do projeto principal pois não fecharam escopo 
-            
             <Link to="/contato" style={linkStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}> Contato </Link>
-            <Link to="/cadastro" style={linkStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}> Cadastrar </Link>
+            {/* <Link to="/cadastro" style={linkStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}> Cadastrar </Link> */}
             <Link to="/login" style={linkStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}> Login </Link> 
-            */}
 
         </nav>
     </header>
