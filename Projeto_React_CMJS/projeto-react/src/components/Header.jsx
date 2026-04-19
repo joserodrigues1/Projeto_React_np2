@@ -2,6 +2,7 @@ import React from 'react';
 import Logo from './Logo.jsx';
 import {Link} from "react-router-dom";
 
+// Componente Header que exibe o topo do site com logo e navegação.
 const Header = () => {
     const linkStyle = {
         color: '#ccc',
@@ -79,10 +80,10 @@ const Header = () => {
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
-                Informações
+                Perguntas Frequentes
             </Link>
             
-            <Link
+{/*             <Link
                 to="/contato"
                 style={linkStyle}
                 onMouseEnter={handleMouseEnter}
@@ -106,7 +107,7 @@ const Header = () => {
                 onMouseLeave={handleMouseLeave}
             >
                 Login
-            </Link>
+            </Link> */}
 
         </nav>
     </header>

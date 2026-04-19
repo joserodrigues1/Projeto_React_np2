@@ -2,6 +2,7 @@
 import React from 'react';
 import LogoUnichristus from '../assets/logoUnichristus.webp' 
 
+// Componente Logo responsável por exibir a marca no cabeçalho.
 const Logo = () => {
     return (
         <div> 

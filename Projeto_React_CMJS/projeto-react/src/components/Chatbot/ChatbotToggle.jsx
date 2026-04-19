@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import IconChatbot from './IconChatbot'; 
 import chatIcon from '../../assets/IconChatbootIA.png'; 
 
+// Componente que controla o botão de toggle para abrir/fechar o chatbot.
 const ChatbotToggle = ({ isOpen, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <>
+      {/* Tooltip exibido ao passar o mouse sobre o botão. */}
       {isHovered && (
         <div style={{
           position: 'fixed',
@@ -24,6 +26,7 @@ const ChatbotToggle = ({ isOpen, onClick }) => {
         </div>
       )}
 
+      {/* Botão principal para abrir/fechar o chatbot. */}
       <button 
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}

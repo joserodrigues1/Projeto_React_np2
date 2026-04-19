@@ -1,5 +1,6 @@
 import React from 'react';
 
+// Componente Footer que renderiza o rodapé do aplicativo.
 const Footer = () => {
   return (
     <footer style={{ marginTop: '20px', paddingTop: '10px', borderTop: '1px solid #ccc', fontSize: '0.8em', width: '100%', textAlign: 'center' }}>

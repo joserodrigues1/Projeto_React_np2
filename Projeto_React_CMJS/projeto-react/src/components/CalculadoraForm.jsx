@@ -2,50 +2,68 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
-    
-    //Hook Form
+
+    // Inicializa o react-hook-form para controle de formulário.
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
-    const enviarEmailCheck = watch('enviarEmail', false); 
+    // Observa se o usuário marcou a opção de envio por e-mail.
+    const enviarEmailCheck = watch('enviarEmail', false);
+    // Mensagem de sucesso exibida temporariamente ao enviar.
     const [mensagemSucesso, setMensagemSucesso] = useState(null);
 
-    // LÓGICA DE SUBMISSÃO
+    // Função executada quando o usuário submete o formulário.
     const onSubmit = (dados) => {
-        const rendaValida = dados.rendaMensal || 0;
-        const custosValidos = dados.custosMensais || 0;
+        // Converte valores com vírgula para número de ponto flutuante.
+        const converterParaNumero = (valor) => {
+            if (typeof valor === 'string') {
+                return Number(valor.replace(',', '.'));
+            }
+            return Number(valor) || 0;
+        };
+
+        const rendaValida = converterParaNumero(dados.rendaMensal);
+        const custosValidos = converterParaNumero(dados.custosMensais);
+
         const dadosParaProp = {
             tipoCalculo: dados.profissao === 'psicologo' ? 'PF' : 'PJ',
-            renda: Number(rendaValida), 
-            custos: Number(custosValidos),
+            renda: rendaValida,
+            custos: custosValidos,
             emailUsuario: dados.emailUsuario,
-            enviarEmail: dados.enviarEmail
+            enviarEmail: dados.enviarEmail,
+            profissao: dados.profissao,
         };
-        
+
         if (onDataSubmit) {
-            onDataSubmit(dadosParaProp); // ⬅️ Comunicação para o componente pai (App.jsx)
+            // Envia os dados normalizados para o componente pai (App.jsx).
+            onDataSubmit(dadosParaProp);
             setMensagemSucesso("✅ Dados enviados para cálculo e comparação.");
             setTimeout(() => setMensagemSucesso(null), 5000);
         }
     };
-    
+
+    // Estilo do wrapper do formulário.
+    // Estilo do wrapper do formulário.
     const formWrapperStyle = {
-        maxWidth: '600px', 
-        margin: '10px auto 80px auto', 
+        maxWidth: '600px',
+        margin: '10px auto 80px auto',
         padding: '30px',
         borderRadius: '12px',
         boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
-        color: '#05142e', 
+        color: '#05142e',
     };
 
+    // Estilo do título do formulário.
     const titleStyle = {
-        color: '#764ba2', 
+        color: '#764ba2',
         marginBottom: '20px',
         textAlign: 'center',
     };
 
+    // Estilo padrão para cada grupo de campo.
     const formGroupStyle = {
         marginBottom: '20px',
     };
 
+    // Estilo dos rótulos (labels).
     const labelStyle = {
         display: 'block',
         marginBottom: '8px',
@@ -53,6 +71,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         color: '#333',
     };
 
+    // Estilo dos campos de entrada.
     const inputStyle = (isError) => ({
         width: '100%',
         padding: '12px',
@@ -64,24 +83,28 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         color: '#05142e',
     });
 
+    // Estilo das mensagens de erro exibidas abaixo dos campos.
     const errorMessageStyle = {
-        color: '#E53E3E', 
+        color: '#E53E3E',
         marginTop: '5px',
         fontSize: '0.85em',
     };
 
+    // Estilo para grupos de checkbox (atualmente comentado).
     const checkboxGroupStyle = {
         display: 'flex',
         alignItems: 'center',
         marginBottom: '20px',
     };
 
+    // Estilo do texto associado ao checkbox.
     const checkboxLabelStyle = {
-        fontSize: '0.9em', 
-        marginBottom: '0', 
+        fontSize: '0.9em',
+        marginBottom: '0',
         color: '#05142e',
     };
 
+    // Estilo do botão principal de envio.
     const primaryButtonStyle = {
         width: '100%',
         padding: '15px',
@@ -91,10 +114,11 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         fontWeight: 'bold',
         fontSize: '1.1em',
         cursor: 'pointer',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         transition: 'opacity 0.3s',
     };
 
+    // Estilo da mensagem de sucesso exibida após o envio.
     const successMessageStyle = {
         padding: '10px',
         backgroundColor: '#D6FFD6',
@@ -113,42 +137,58 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     <div style={successMessageStyle}>{mensagemSucesso}</div>
                 )}
                 
-                {/* Input Renda Mensal */}
+                {/* Campo de entrada de renda mensal. */}
                 <div style={formGroupStyle}>
                     <label htmlFor="renda" style={labelStyle}>Renda Mensal (até R$ 15.000): </label>
                     <input
                         id="renda"
-                        type="number"
+                        type="text"
                         style={inputStyle(errors.rendaMensal)}
                         {...register("rendaMensal", { 
                             required: "A Renda Mensal é obrigatória.",
-                            min: { value: 1, message: "A renda deve ser maior que zero." },
-                            max: { value: 15000, message: "A renda não pode exceder R$ 15.000." },
-                            valueAsNumber: true,
+                            pattern: {
+                                value: /^[\d,.]+$/,
+                                message: "Digite um valor válido (use vírgula ou ponto como separador decimal)."
+                            },
+                            validate: (value) => {
+                                const num = Number(value.replace(',', '.'));
+                                if (isNaN(num)) return "Valor inválido.";
+                                if (num <= 0) return "A renda deve ser maior que zero.";
+                                if (num > 15000) return "A renda não pode exceder R$ 15.000.";
+                                return true;
+                            }
                         })}
-                        placeholder="R$ 0,00"
+                        placeholder="Ex: 5.000 ou 5,000"
                     />
                     {errors.rendaMensal && <span style={errorMessageStyle}>{errors.rendaMensal.message}</span>}
                 </div>
 
-                {/* Input Custos Mensais */}
+                {/* Campo de entrada de custos mensais. */}
                 <div style={formGroupStyle}>
                     <label htmlFor="custos" style={labelStyle}>Total de Custos Mensais: </label>
                     <input
                         id="custos"
-                        type="number"
+                        type="text"
                         style={inputStyle(errors.custosMensais)}
                         {...register("custosMensais", { 
                             required: "Os Custos Mensais são obrigatórios.",
-                            min: { value: 0, message: "Os custos não podem ser negativos." },
-                            valueAsNumber: true,
+                            pattern: {
+                                value: /^[\d,.]+$/,
+                                message: "Digite um valor válido (use vírgula ou ponto como separador decimal)."
+                            },
+                            validate: (value) => {
+                                const num = Number(value.replace(',', '.'));
+                                if (isNaN(num)) return "Valor inválido.";
+                                if (num < 0) return "Os custos não podem ser negativos.";
+                                return true;
+                            }
                         })}
-                        placeholder="R$ 0,00"
+                        placeholder="Ex: 1.000 ou 1,000"
                     />
                     {errors.custosMensais && <span style={errorMessageStyle}>{errors.custosMensais.message}</span>}
                 </div>
 
-                {/* Select Profissão */}
+                {/* Campo de seleção de profissão. */}
                 <div style={formGroupStyle}>
                     <label htmlFor="profissao" style={labelStyle}>Profissão:</label>
                     <select 
@@ -158,10 +198,12 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                         defaultValue="psicologo"
                     >
                         <option value="psicologo">Psicólogo(a)</option>
+                        <option value="advogado">Advogado(a)</option>
+                        <option value="arquiteto">Arquiteto(a)</option>
                     </select>
                 </div>
 
-                {/* Checkbox Enviar Email */}
+                {/* Checkbox Enviar Email
                 <div style={checkboxGroupStyle}>
                     <input
                         id="enviarEmailCheck"
@@ -170,9 +212,9 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                         {...register("enviarEmail")}
                     />
                     <label htmlFor="enviarEmailCheck" style={checkboxLabelStyle}>Deseja enviar os cálculos via e-mail?</label>
-                </div>
-
-                {/* Input E-mail, condicional */}
+                </div> */}
+                
+                {/* Campo de e-mail exibido apenas quando o usuário marca o envio por e-mail. */}
                 {enviarEmailCheck && (
                     <div style={formGroupStyle}>
                         <label htmlFor="emailUsuario" style={labelStyle}>Seu E-mail:</label>
@@ -192,9 +234,11 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                         {errors.emailUsuario && <span style={errorMessageStyle}>{errors.emailUsuario.message}</span>}
                     </div>
                 )}
-
-                <button type="submit" style={primaryButtonStyle}>Calcular e Enviar</button>
                 
+                <button type="submit" style={primaryButtonStyle}>
+                    {enviarEmailCheck ? "Calcular e Enviar" : "Calcular"}
+                </button>
+
             </form>
         </div>
     );
