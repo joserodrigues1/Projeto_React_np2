@@ -11,9 +11,12 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
     
     // Estado volátil só p exibir balãozinho de "Deu Certo " verde.
     const [mensagemSucesso, setMensagemSucesso] = useState(null);
+    const [isCalculating, setIsCalculating] = useState(false);
 
     // Método que interage com o hook onSubmit. Recebe "DADOS", que é o payload json higienizado.
     const onSubmit = (dados) => {
+        setIsCalculating(true);
+        setTimeout(() => {
         // Snippetzinho maroto pra resolver nosso problema das virgulas brasileiras zoando o Math 
         const converterParaNumero = (valor) => {
             if (typeof valor === 'string') {
@@ -39,8 +42,10 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         if (onDataSubmit) {
             onDataSubmit(dadosParaProp);
             setMensagemSucesso("✅ Dados enviados para cálculo e comparação.");
+            setIsCalculating(false);
             setTimeout(() => setMensagemSucesso(null), 5000); // Tira o alerta em 5 segs da tela 
         }
+        }, 800); // 800ms animation delay giving a senior processing feel
     };
 
     /** CSS inline massivo pros styles **/
@@ -117,7 +122,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                 <h2 style={titleStyle}>Informe os Dados</h2>
 
                 {mensagemSucesso && (
-                    <div style={successMessageStyle}>{mensagemSucesso}</div>
+                    <div style={successMessageStyle} className="animate-fade-in-scale">{mensagemSucesso}</div>
                 )}
                 
                 {/*  ------- INiCIO BLCOO RENDA  ------- */}
@@ -215,8 +220,8 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     </div>
                 )}
                 
-                <button type="submit" style={primaryButtonStyle}>
-                    {enviarEmailCheck ? "Calcular e Enviar" : "Calcular"}
+                <button type="submit" style={primaryButtonStyle} disabled={isCalculating}>
+                    {isCalculating ? "Calculando..." : (enviarEmailCheck ? "Calcular e Enviar" : "Calcular")}
                 </button>
 
             </form>

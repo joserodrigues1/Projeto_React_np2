@@ -53,7 +53,7 @@ const Header = () => {
             Calculadora de Tributação
           </h1>
           <p style={{ margin: '5px 0 0 0', fontSize: '1.0em', color: '#ccc' }}>
-            Pessoa Física e Jurídica para Psicólogos
+            Pessoa Física e Jurídica
           </p>
         </div>
 

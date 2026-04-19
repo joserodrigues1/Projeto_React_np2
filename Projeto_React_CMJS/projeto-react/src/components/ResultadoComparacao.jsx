@@ -13,7 +13,7 @@ const formatter = new Intl.NumberFormat('pt-BR', {
 /* Estilos Globais da Tela de Comparação */
 const containerStyle = { /* ... */ };
 const tituloStyle = { /* ... */ };
-const cardContainerStyle = { display: 'flex', justifyContent: 'space-around', gap: '20px', marginTop: '30px' };
+const cardContainerStyle = { display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', gap: '20px', marginTop: '30px' };
 const cardBaseStyle = { /* ... */ };
 
 // Helpezinho de CSS pra pintar o Card vencedor com uma bordinha dourada/amarela e fundinho azul mais escuro, dando aquele Tchan
@@ -73,7 +73,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
        MONTANDO A UI DO CARD DA PESSOA FÍSICA
     ------------------------------------------------------ */
     const CardPF = (
-        <div style={destaqueStyle(isPFMelhor)}>
+        <div style={destaqueStyle(isPFMelhor)} className={`card-comparacao animate-fade-in-up animate-delay-1 ${isPFMelhor ? 'animate-winner' : ''}`}>
             {/* Header condicional aceso ou apagado */}
             <h4 style={{ color: isPFMelhor ? '#00ccff' : 'white', borderBottom: '1px solid #1e3c72', paddingBottom: '10px' }}>
                 Pessoa Física (PF)
@@ -102,7 +102,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
        MONTANDO A UI DO CARD DA PESSOA JURÍDICA
     ------------------------------------------------------ */
     const CardPJ = (
-        <div style={destaqueStyle(!isPFMelhor)}>
+        <div style={destaqueStyle(!isPFMelhor)} className={`card-comparacao animate-fade-in-up animate-delay-2 ${!isPFMelhor ? 'animate-winner' : ''}`}>
             <h4 style={{ color: !isPFMelhor ? '#00ccff' : 'white', borderBottom: '1px solid #1e3c72', paddingBottom: '10px' }}>
                 Pessoa Jurídica (PJ - Simples Nacional)
             </h4>
@@ -140,7 +140,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
 
 
     return (
-        <div id="resultado-comparacao" style={containerStyle}>
+        <div id="resultado-comparacao" style={containerStyle} className="animate-fade-in-up">
             <h2 style={tituloStyle}>Resultado da Simulação e Comparação</h2>
 
             <p style={{ textAlign: 'center', marginBottom: '30px', color: '#ccc' }}>
