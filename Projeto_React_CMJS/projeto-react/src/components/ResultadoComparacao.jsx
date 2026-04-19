@@ -1,7 +1,8 @@
 import React from 'react';
+// Trazendo o vídeo placeholder maroto q fica rolando embedado no final do card
 import videoImposto from '../assets/Imposto_de_Renda__PF_ou_PJ_.mp4';
 
-// Formata números como moeda em reais.
+// Instanciando logo o Intl pra formatar nossa bufunfa pra padrão R$ Brazuca certinho com ,00 
 const formatter = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -9,11 +10,13 @@ const formatter = new Intl.NumberFormat('pt-BR', {
     maximumFractionDigits: 2,
 });
 
-// Estilos principais do container de resultados.
+/* Estilos Globais da Tela de Comparação */
 const containerStyle = { /* ... */ };
 const tituloStyle = { /* ... */ };
 const cardContainerStyle = { display: 'flex', justifyContent: 'space-around', gap: '20px', marginTop: '30px' };
 const cardBaseStyle = { /* ... */ };
+
+// Helpezinho de CSS pra pintar o Card vencedor com uma bordinha dourada/amarela e fundinho azul mais escuro, dando aquele Tchan
 const destaqueStyle = (isMelhor) => ({
     padding: '18px',
     borderRadius: '8px',
@@ -23,9 +26,9 @@ const destaqueStyle = (isMelhor) => ({
     flex: 1,
 });
 
-
 const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
-    // URLs dos vídeos para cada combinação de profissão e melhor opção (vídeo provisório único).
+
+    // Um mini-dicinário pra gente plugar os vídeos certos baseados na profissão e se valeu a pena meter uma PF ou PJ.
     const videoUrls = {
         psicologo: {
             PF: videoImposto,
@@ -41,6 +44,7 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
         }
     };
 
+    // Segurança anti-crash: se tiver renderizando vazio antes do usuário clicar no "Calcular" esconde o componente main e mostra uma call-to-action
     if (!dadosEntrada || !resultadoPF || !resultadoPJ) {
         return (
             <div id="resultado-comparacao" style={containerStyle}>
@@ -52,45 +56,60 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
         );
     }
 
-    // Extrai a renda líquida dos resultados de PF e PJ.
+    // Pega a grana q sobrou no bolso no fim do rolê
     const rendaPFLiquida = resultadoPF.rendaLiquida;
     const rendaPJLiquida = resultadoPJ.rendaLiquida;
 
-    // Compara para determinar qual opção tem maior renda líquida.
+    // Lógica boba quem sobrar com mais no fim é o "isMelhor = TRUE" 
     const isPFMelhor = rendaPFLiquida >= rendaPJLiquida;
 
-    // Determina a profissão e a melhor opção para escolher o vídeo.
+    // Configurando as views pro render do video abaixo
     const profissao = dadosEntrada.profissao;
     const melhorOpcao = isPFMelhor ? 'PF' : 'PJ';
-    const videoUrl = videoUrls[profissao]?.[melhorOpcao] || videoImposto;
-    
+    const videoUrl = videoUrls[profissao]?.[melhorOpcao] || videoImposto; // Fallback garantido se n achar o link
+
+
+    /* ----------------------------------------------------
+       MONTANDO A UI DO CARD DA PESSOA FÍSICA
+    ------------------------------------------------------ */
     const CardPF = (
         <div style={destaqueStyle(isPFMelhor)}>
+            {/* Header condicional aceso ou apagado */}
             <h4 style={{ color: isPFMelhor ? '#00ccff' : 'white', borderBottom: '1px solid #1e3c72', paddingBottom: '10px' }}>
                 Pessoa Física (PF)
             </h4>
-            
+
             <p><strong>Renda Mensal:</strong> {formatter.format(dadosEntrada.rendaMensal)}</p>
             <p><strong>Custos Mensais:</strong> {formatter.format(dadosEntrada.custosMensais)}</p>
-            
+
             <p><strong>Base de Cálculo (IRPF):</strong> {formatter.format(resultadoPF.basePF)}</p>
+            {/* Dói no rim ter que pagar isso tudo... amarelinho pra alertar */}
             <p><strong>IRPF a Pagar:</strong> <strong style={{ color: '#ffeb3b' }}>{formatter.format(resultadoPF.imposto)}</strong></p>
-            
-            <hr style={{ borderColor: '#1e3c72', margin: '15px 0' }}/>
+
+            <hr style={{ borderColor: '#1e3c72', margin: '15px 0' }} />
+
             <h3 style={{ color: '#00ccff' }}>
                 Renda Líquida (Simplificada): {formatter.format(rendaPFLiquida)}
             </h3>
+
+            {/* Selo amarelho de VENCEDOR aqui... e que vença o q sobrar mais kkkk */}
             {isPFMelhor && <p style={{ color: '#ffeb3b', fontWeight: 'bold' }}>&#9733; MELHOR OPÇÃO</p>}
         </div>
     );
 
+
+    /* ----------------------------------------------------
+       MONTANDO A UI DO CARD DA PESSOA JURÍDICA
+    ------------------------------------------------------ */
     const CardPJ = (
         <div style={destaqueStyle(!isPFMelhor)}>
             <h4 style={{ color: !isPFMelhor ? '#00ccff' : 'white', borderBottom: '1px solid #1e3c72', paddingBottom: '10px' }}>
                 Pessoa Jurídica (PJ - Simples Nacional)
             </h4>
-            
+
             <p><strong>Renda Mensal:</strong> {formatter.format(dadosEntrada.rendaMensal)}</p>
+
+            {/* Condicional pro render chato do Advogado onde o ProLabore é flat rate 1,6K e tem aquela cota patronal horrivel */}
             {dadosEntrada.profissao === 'advogado' ? (
                 <>
                     <p><strong>Simples Nacional (4.5%):</strong> {formatter.format(resultadoPJ.simples_nac)}</p>
@@ -100,17 +119,21 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
                 </>
             ) : (
                 <>
+                    {/* Render basicão pro resto dos mortais */}
                     <p><strong>28% da Renda (Pró-Labore):</strong> {formatter.format(resultadoPJ.pro_labore)}</p>
                     <p><strong>Simples Nacional (6%):</strong> {formatter.format(resultadoPJ.simples_nac)}</p>
                     <p><strong>INSS (11%):</strong> {formatter.format(resultadoPJ.inss)}</p>
                 </>
             )}
+
             <p><strong>Imposto Total a Pagar:</strong> <strong style={{ color: '#ffeb3b' }}>{formatter.format(resultadoPJ.imposto)}</strong></p>
-            
-            <hr style={{ borderColor: '#1e3c72', margin: '15px 0' }}/>
+
+            <hr style={{ borderColor: '#1e3c72', margin: '15px 0' }} />
             <h3 style={{ color: '#00ccff' }}>
                 Renda Líquida (Simplificada): {formatter.format(rendaPJLiquida)}
             </h3>
+
+            {/* Selo se ganhou */}
             {!isPFMelhor && <p style={{ color: '#ffeb3b', fontWeight: 'bold' }}>&#9733; MELHOR OPÇÃO</p>}
         </div>
     );
@@ -119,21 +142,22 @@ const ResultadoComparacao = ({ dadosEntrada, resultadoPF, resultadoPJ }) => {
     return (
         <div id="resultado-comparacao" style={containerStyle}>
             <h2 style={tituloStyle}>Resultado da Simulação e Comparação</h2>
-            
+
             <p style={{ textAlign: 'center', marginBottom: '30px', color: '#ccc' }}>
                 Renda Bruta Mensal de Entrada: <span style={{ color: '#ffeb3b', fontWeight: 'bold' }}>{formatter.format(dadosEntrada.rendaMensal)}</span>
             </p>
 
+            {/* Injetando as divs dos cartôes que a gente buildou alí em cima  */}
             <div style={cardContainerStyle}>
                 {CardPF}
                 {CardPJ}
             </div>
 
-            {/* Vídeo relacionado à melhor opção conforme a profissão selecionada (vídeo provisório). */}
+            {/* Video Player dinâmico - puxando qual videourl é com base no cenário que deu Win. */}
             {videoUrl && (
                 <div style={{ marginTop: '40px', textAlign: 'center' }}>
                     <h3 style={{ color: '#ffeb3b', marginBottom: '20px' }}>
-                        Vídeo Explicativo: {melhorOpcao} para {profissao.charAt(0).toUpperCase() + profissao.slice(1)}
+                        Vídeo Explicativo: {melhorOpcao} para {profissao.charAt(0).toUpperCase() + profissao.slice(1)} {/* charAt pra dexar o "A"dvogado ou "M"edico com letra maiúscula */}
                     </h3>
                     <video
                         width="560"

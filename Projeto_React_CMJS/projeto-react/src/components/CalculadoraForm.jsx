@@ -3,19 +3,21 @@ import { useForm } from 'react-hook-form';
 
 const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
 
-    // Inicializa o react-hook-form para controle de formulário.
+    // Extraindo hooks de config do react-hook-form pra desburocratizar a gerência de forms React 
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
-    // Observa se o usuário marcou a opção de envio por e-mail.
+    
+    // O Watch ta observando realtime a prop do checbox de email (mesmoq eu ele esteja desativado agora)
     const enviarEmailCheck = watch('enviarEmail', false);
-    // Mensagem de sucesso exibida temporariamente ao enviar.
+    
+    // Estado volátil só p exibir balãozinho de "Deu Certo " verde.
     const [mensagemSucesso, setMensagemSucesso] = useState(null);
 
-    // Função executada quando o usuário submete o formulário.
+    // Método que interage com o hook onSubmit. Recebe "DADOS", que é o payload json higienizado.
     const onSubmit = (dados) => {
-        // Converte valores com vírgula para número de ponto flutuante.
+        // Snippetzinho maroto pra resolver nosso problema das virgulas brasileiras zoando o Math 
         const converterParaNumero = (valor) => {
             if (typeof valor === 'string') {
-                return Number(valor.replace(',', '.'));
+                return Number(valor.replace(',', '.')); // troca , e converte bruto
             }
             return Number(valor) || 0;
         };
@@ -23,6 +25,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         const rendaValida = converterParaNumero(dados.rendaMensal);
         const custosValidos = converterParaNumero(dados.custosMensais);
 
+        // Agrupa as props limpídas
         const dadosParaProp = {
             tipoCalculo: dados.profissao === 'psicologo' ? 'PF' : 'PJ',
             renda: rendaValida,
@@ -32,16 +35,16 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
             profissao: dados.profissao,
         };
 
+        // Escoa info de volta subindo pro Pai (App.jsx)
         if (onDataSubmit) {
-            // Envia os dados normalizados para o componente pai (App.jsx).
             onDataSubmit(dadosParaProp);
             setMensagemSucesso("✅ Dados enviados para cálculo e comparação.");
-            setTimeout(() => setMensagemSucesso(null), 5000);
+            setTimeout(() => setMensagemSucesso(null), 5000); // Tira o alerta em 5 segs da tela 
         }
     };
 
-    // Estilo do wrapper do formulário.
-    // Estilo do wrapper do formulário.
+    /** CSS inline massivo pros styles **/
+
     const formWrapperStyle = {
         maxWidth: '600px',
         margin: '10px auto 80px auto',
@@ -51,19 +54,16 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         color: '#05142e',
     };
 
-    // Estilo do título do formulário.
     const titleStyle = {
         color: '#764ba2',
         marginBottom: '20px',
         textAlign: 'center',
     };
 
-    // Estilo padrão para cada grupo de campo.
     const formGroupStyle = {
         marginBottom: '20px',
     };
 
-    // Estilo dos rótulos (labels).
     const labelStyle = {
         display: 'block',
         marginBottom: '8px',
@@ -71,11 +71,10 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         color: '#333',
     };
 
-    // Estilo dos campos de entrada.
     const inputStyle = (isError) => ({
         width: '100%',
         padding: '12px',
-        border: isError ? '1px solid #E53E3E' : '1px solid #CBD5E0',
+        border: isError ? '1px solid #E53E3E' : '1px solid #CBD5E0', // feedback borda vermelha 
         borderRadius: '6px',
         fontSize: '1em',
         boxSizing: 'border-box',
@@ -83,28 +82,12 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         color: '#05142e',
     });
 
-    // Estilo das mensagens de erro exibidas abaixo dos campos.
     const errorMessageStyle = {
         color: '#E53E3E',
         marginTop: '5px',
         fontSize: '0.85em',
     };
 
-    // Estilo para grupos de checkbox (atualmente comentado).
-    const checkboxGroupStyle = {
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: '20px',
-    };
-
-    // Estilo do texto associado ao checkbox.
-    const checkboxLabelStyle = {
-        fontSize: '0.9em',
-        marginBottom: '0',
-        color: '#05142e',
-    };
-
-    // Estilo do botão principal de envio.
     const primaryButtonStyle = {
         width: '100%',
         padding: '15px',
@@ -114,11 +97,10 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
         fontWeight: 'bold',
         fontSize: '1.1em',
         cursor: 'pointer',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // gradiente Unichristus
         transition: 'opacity 0.3s',
     };
 
-    // Estilo da mensagem de sucesso exibida após o envio.
     const successMessageStyle = {
         padding: '10px',
         backgroundColor: '#D6FFD6',
@@ -130,6 +112,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
 
     return (
         <div style={formWrapperStyle}>
+            {/* O handleSubmit envelopa nosso OnSubmit pegando do hook context as trvas de form nativo  */}
             <form onSubmit={handleSubmit(onSubmit)} className="calculadora-form">
                 <h2 style={titleStyle}>Informe os Dados</h2>
 
@@ -137,33 +120,35 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     <div style={successMessageStyle}>{mensagemSucesso}</div>
                 )}
                 
-                {/* Campo de entrada de renda mensal. */}
+                {/*  ------- INiCIO BLCOO RENDA  ------- */}
                 <div style={formGroupStyle}>
                     <label htmlFor="renda" style={labelStyle}>Renda Mensal (até R$ 15.000): </label>
                     <input
                         id="renda"
                         type="text"
                         style={inputStyle(errors.rendaMensal)}
+                        // Desestruturando regras de bloqueio do Form control 
                         {...register("rendaMensal", { 
                             required: "A Renda Mensal é obrigatória.",
                             pattern: {
-                                value: /^[\d,.]+$/,
+                                value: /^[\d,.]+$/, // Aceita só number e vírgulas/ponto. Se tentar 'a' chora 
                                 message: "Digite um valor válido (use vírgula ou ponto como separador decimal)."
                             },
                             validate: (value) => {
                                 const num = Number(value.replace(',', '.'));
                                 if (isNaN(num)) return "Valor inválido.";
                                 if (num <= 0) return "A renda deve ser maior que zero.";
-                                if (num > 15000) return "A renda não pode exceder R$ 15.000.";
+                                if (num > 15000) return "A renda não pode exceder R$ 15.000."; // Trava de negocio limite
                                 return true;
                             }
                         })}
                         placeholder="Ex: 5.000 ou 5,000"
                     />
+                    {/* feedback de error renderizando aqui */}
                     {errors.rendaMensal && <span style={errorMessageStyle}>{errors.rendaMensal.message}</span>}
                 </div>
 
-                {/* Campo de entrada de custos mensais. */}
+                {/*  ------- BLCOO CUSTOS ------- */}
                 <div style={formGroupStyle}>
                     <label htmlFor="custos" style={labelStyle}>Total de Custos Mensais: </label>
                     <input
@@ -188,7 +173,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     {errors.custosMensais && <span style={errorMessageStyle}>{errors.custosMensais.message}</span>}
                 </div>
 
-                {/* Campo de seleção de profissão. */}
+                {/* ------- DROPDOWN PROFISSOES ------- */}
                 <div style={formGroupStyle}>
                     <label htmlFor="profissao" style={labelStyle}>Profissão:</label>
                     <select 
@@ -203,18 +188,13 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                     </select>
                 </div>
 
-                {/* Checkbox Enviar Email
+                {/* Feature de envio de email. Comentada por enquanto caso precise no futuro... 
                 <div style={checkboxGroupStyle}>
-                    <input
-                        id="enviarEmailCheck"
-                        type="checkbox"
-                        style={{ marginRight: '10px' }}
-                        {...register("enviarEmail")}
-                    />
-                    <label htmlFor="enviarEmailCheck" style={checkboxLabelStyle}>Deseja enviar os cálculos via e-mail?</label>
+                    <input id="enviarEmailCheck" type="checkbox" {...register("enviarEmail")} />
+                    <label htmlFor="enviarEmailCheck" style={checkboxLabelStyle}>Deseja enviar via e-mail?</label>
                 </div> */}
                 
-                {/* Campo de e-mail exibido apenas quando o usuário marca o envio por e-mail. */}
+                {/* Bloco Dinâmico: só renderiza emailUsuario se a checkbox Email tiver ticada  */}
                 {enviarEmailCheck && (
                     <div style={formGroupStyle}>
                         <label htmlFor="emailUsuario" style={labelStyle}>Seu E-mail:</label>
@@ -225,7 +205,7 @@ const CalculadoraForm = ({ onDataSubmit, onOpenChat }) => {
                             {...register("emailUsuario", {
                                 required: "O campo de e-mail é obrigatório para o envio.",
                                 pattern: {
-                                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, // regex clássica de email
                                     message: "E-mail inválido."
                                 }
                             })}
